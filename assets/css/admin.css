@@ -1,0 +1,648 @@
+/* ==========================================================================
+   LinkPilot Admin Styles
+   ========================================================================== */
+
+/* ---------- Design Tokens ---------- */
+:root {
+    --lp-brand: #3858e9;
+    --lp-brand-light: #eef1fd;
+    --lp-brand-hover: #2c47c4;
+    --lp-success: #00a32a;
+    --lp-success-light: #edfaef;
+    --lp-warning: #dba617;
+    --lp-warning-light: #fef8e7;
+    --lp-text: #1d2327;
+    --lp-text-muted: #646970;
+    --lp-border: #c3c4c7;
+    --lp-border-light: #e0e0e0;
+    --lp-card-bg: #fff;
+    --lp-radius: 6px;
+    --lp-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --lp-transition: 0.15s ease;
+}
+
+
+/* ==========================================================================
+   Dashboard
+   ========================================================================== */
+
+/* ---------- Stats Row ---------- */
+.lp-dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 20px 0 28px;
+}
+
+.lp-stat-card {
+    background: var(--lp-card-bg);
+    border: 1px solid var(--lp-border-light);
+    border-radius: var(--lp-radius);
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--lp-shadow);
+    transition: border-color var(--lp-transition), box-shadow var(--lp-transition);
+}
+
+.lp-stat-card:hover {
+    border-color: var(--lp-brand);
+    box-shadow: 0 1px 6px rgba(56, 88, 233, 0.08);
+}
+
+/* Accent top bar on cards */
+.lp-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--lp-brand);
+    opacity: 0;
+    transition: opacity var(--lp-transition);
+}
+
+.lp-stat-card:hover::before {
+    opacity: 1;
+}
+
+/* Card icon */
+.lp-stat-card .lp-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--lp-brand-light);
+    color: var(--lp-brand);
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+.lp-stat-card .lp-stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--lp-text);
+    margin: 0 0 4px;
+}
+
+.lp-stat-card .lp-stat-label {
+    font-size: 13px;
+    color: var(--lp-text-muted);
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+
+/* ---------- Top Links Table ---------- */
+.lp-dashboard-stats + h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--lp-text);
+}
+
+.wrap > .widefat.lp-top-links {
+    border-radius: var(--lp-radius);
+    border-color: var(--lp-border-light);
+    box-shadow: var(--lp-shadow);
+    overflow: hidden;
+}
+
+.widefat.lp-top-links thead th {
+    background: #f9f9f9;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--lp-text-muted);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--lp-border-light);
+}
+
+.widefat.lp-top-links tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+.widefat.lp-top-links tbody tr {
+    transition: background-color var(--lp-transition);
+}
+
+.widefat.lp-top-links tbody tr:hover {
+    background-color: var(--lp-brand-light);
+}
+
+.widefat.lp-top-links tbody td a {
+    color: var(--lp-brand);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.widefat.lp-top-links tbody td a:hover {
+    color: var(--lp-brand-hover);
+    text-decoration: underline;
+}
+
+/* Dashboard table clicks column */
+.lp-col-clicks {
+    width: 100px;
+    text-align: center;
+}
+
+.widefat.lp-top-links thead .lp-col-clicks {
+    text-align: center;
+}
+
+/* Click count badge */
+.lp-click-count {
+    display: inline-block;
+    min-width: 32px;
+    padding: 2px 10px;
+    background: var(--lp-brand-light);
+    color: var(--lp-brand);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* Empty state */
+.lp-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--lp-text-muted);
+}
+
+.lp-empty-state .dashicons {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: var(--lp-border);
+    margin-bottom: 12px;
+}
+
+
+/* ==========================================================================
+   Link Edit Meta Box
+   ========================================================================== */
+
+/* ---------- Form Table ---------- */
+.lp-meta-box {
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.lp-meta-box .widefat {
+    max-width: 100%;
+}
+
+.lp-meta-box th {
+    width: 160px;
+    padding: 12px 10px 12px 0;
+    font-weight: 500;
+    color: var(--lp-text);
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.lp-meta-box td {
+    padding: 8px 10px 8px 0;
+}
+
+.lp-meta-box select {
+    min-width: 200px;
+}
+
+/* Section grouping within meta box */
+.lp-meta-box .lp-field-group td {
+    padding-top: 16px;
+}
+
+.lp-meta-box .lp-field-group th {
+    padding-top: 16px;
+}
+
+.lp-meta-box .lp-field-group td::before {
+    content: '';
+    display: block;
+    border-top: 1px solid var(--lp-border-light);
+    margin-bottom: 12px;
+    margin-right: -10px;
+}
+
+.lp-meta-box .lp-field-group th::before {
+    content: '';
+    display: block;
+    border-top: 1px solid var(--lp-border-light);
+    margin-bottom: 12px;
+}
+
+/* Destination URL field emphasis */
+.lp-meta-box #lp_destination_url {
+    font-size: 14px;
+    padding: 8px 10px;
+    border-color: var(--lp-border);
+    transition: border-color var(--lp-transition), box-shadow var(--lp-transition);
+}
+
+.lp-meta-box #lp_destination_url:focus {
+    border-color: var(--lp-brand);
+    box-shadow: 0 0 0 1px var(--lp-brand);
+    outline: none;
+}
+
+/* ---------- Cloaked URL with Copy Button ---------- */
+.lp-cloaked-url-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+}
+
+.lp-cloaked-url-wrap code {
+    display: inline-block;
+    padding: 6px 10px;
+    background: #f0f0f1;
+    border: 1px solid var(--lp-border-light);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--lp-text);
+    word-break: break-all;
+    user-select: all;
+    cursor: text;
+    line-height: 1.5;
+}
+
+.lp-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px solid var(--lp-border);
+    border-radius: 4px;
+    background: var(--lp-card-bg);
+    color: var(--lp-text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--lp-transition);
+    line-height: 1.5;
+}
+
+.lp-copy-btn:hover {
+    border-color: var(--lp-brand);
+    color: var(--lp-brand);
+    background: var(--lp-brand-light);
+}
+
+.lp-copy-btn.lp-copied {
+    border-color: var(--lp-success);
+    color: var(--lp-success);
+    background: var(--lp-success-light);
+}
+
+.lp-copy-btn .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+}
+
+
+/* ==========================================================================
+   Stats Sidebar (edit screen)
+   ========================================================================== */
+
+.lp-stats-box {
+    padding: 4px 0;
+}
+
+.lp-stats-box .lp-stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.lp-stats-box .lp-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--lp-border-light);
+}
+
+.lp-stats-box .lp-stat-row:last-child {
+    border-bottom: none;
+    padding-bottom: 4px;
+}
+
+.lp-stats-box .lp-stat-row-label {
+    font-size: 13px;
+    color: var(--lp-text-muted);
+}
+
+.lp-stats-box .lp-stat-row-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--lp-text);
+}
+
+/* Mini bar visualization */
+.lp-stats-box .lp-mini-bar {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--lp-border-light);
+}
+
+.lp-stats-box .lp-mini-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--lp-text-muted);
+    margin-bottom: 6px;
+}
+
+.lp-stats-box .lp-mini-bar-track {
+    height: 6px;
+    background: #f0f0f1;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.lp-stats-box .lp-mini-bar-fill {
+    height: 100%;
+    background: var(--lp-brand);
+    border-radius: 3px;
+    min-width: 2px;
+    transition: width 0.4s ease;
+}
+
+
+/* ==========================================================================
+   List Table Columns
+   ========================================================================== */
+
+.column-lp_clicks {
+    width: 80px;
+    text-align: center;
+}
+
+.column-lp_cloaked_url {
+    max-width: 260px;
+}
+
+.column-lp_cloaked_url code {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f0f0f1;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--lp-text);
+    border: 1px solid var(--lp-border-light);
+    cursor: pointer;
+    transition: all var(--lp-transition);
+}
+
+.column-lp_cloaked_url code:hover {
+    background: var(--lp-brand-light);
+    border-color: var(--lp-brand);
+    color: var(--lp-brand);
+}
+
+.column-lp_cloaked_url code.lp-code-copied {
+    background: var(--lp-success-light);
+    border-color: var(--lp-success);
+    color: var(--lp-success);
+}
+
+/* Clicks badge in list table */
+.column-lp_clicks .lp-click-count {
+    display: inline-block;
+    min-width: 28px;
+    padding: 2px 8px;
+    background: var(--lp-brand-light);
+    color: var(--lp-brand);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Destination URL column */
+.column-lp_destination a {
+    color: var(--lp-text-muted);
+    text-decoration: none;
+    transition: color var(--lp-transition);
+}
+
+.column-lp_destination a:hover {
+    color: var(--lp-brand);
+}
+
+
+/* ==========================================================================
+   Link Picker Modal
+   ========================================================================== */
+
+.lp-picker-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100100;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: lp-fade-in 0.15s ease;
+}
+
+@keyframes lp-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes lp-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lp-picker-inner {
+    background: var(--lp-card-bg);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 520px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: lp-slide-up 0.2s ease;
+}
+
+.lp-picker-inner h2 {
+    margin: 0;
+    padding: 16px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--lp-border-light);
+    color: var(--lp-text);
+}
+
+.lp-picker-search {
+    display: block;
+    width: calc(100% - 40px);
+    margin: 16px 20px 0;
+    padding: 10px 12px;
+    border: 1px solid var(--lp-border);
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color var(--lp-transition), box-shadow var(--lp-transition);
+}
+
+.lp-picker-search:focus {
+    border-color: var(--lp-brand);
+    box-shadow: 0 0 0 1px var(--lp-brand);
+}
+
+.lp-picker-search::placeholder {
+    color: #a7aaad;
+}
+
+.lp-picker-results {
+    padding: 8px 12px 12px;
+    overflow-y: auto;
+    flex: 1;
+    max-height: 340px;
+    min-height: 60px;
+}
+
+.lp-picker-results p {
+    color: var(--lp-text-muted);
+    text-align: center;
+    padding: 20px 0;
+    font-size: 13px;
+}
+
+.lp-picker-item {
+    padding: 10px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color var(--lp-transition);
+    border: 1px solid transparent;
+}
+
+.lp-picker-item:hover {
+    background: var(--lp-brand-light);
+    border-color: rgba(56, 88, 233, 0.12);
+}
+
+.lp-picker-item strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--lp-text);
+    margin-bottom: 2px;
+}
+
+.lp-picker-item code {
+    font-size: 11px;
+    color: var(--lp-text-muted);
+    background: none;
+    padding: 0;
+}
+
+.lp-picker-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--lp-border-light);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.lp-picker-close {
+    font-size: 13px;
+}
+
+
+/* ==========================================================================
+   Settings Page
+   ========================================================================== */
+
+.lp-settings-wrap .form-table th {
+    font-weight: 500;
+}
+
+
+/* ==========================================================================
+   Utilities & Accessibility
+   ========================================================================== */
+
+/* Visible focus outlines for keyboard nav */
+.lp-meta-box select:focus,
+.lp-meta-box input[type="text"]:focus {
+    border-color: var(--lp-brand);
+    box-shadow: 0 0 0 1px var(--lp-brand);
+    outline: none;
+}
+
+/* Screen-reader only text */
+.lp-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Tooltip */
+.lp-tooltip {
+    position: relative;
+}
+
+.lp-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #1d2327;
+    color: #fff;
+    font-size: 11px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--lp-transition);
+}
+
+.lp-tooltip:hover::after,
+.lp-tooltip:focus::after {
+    opacity: 1;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
