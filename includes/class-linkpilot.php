@@ -30,6 +30,7 @@ final class LinkPilot {
             LP_Admin::init();
             LP_Settings::init();
             LP_CSV::init();
+            LP_Setup_Wizard::init();
         }
 
         LP_Link_Fixer::init();
