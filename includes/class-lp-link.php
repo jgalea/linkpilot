@@ -44,8 +44,11 @@ class LP_Link {
 
     public function get_redirect_type() {
         $type = get_post_meta( $this->id, self::META_KEYS['redirect_type'], true );
-        if ( ! $type || $type === 'default' ) {
+        if ( ! in_array( $type, array( '301', '302', '307', 301, 302, 307 ), true ) ) {
             $type = get_option( 'lp_redirect_type', '307' );
+        }
+        if ( ! in_array( (string) $type, array( '301', '302', '307' ), true ) ) {
+            $type = '307';
         }
         return (int) $type;
     }
