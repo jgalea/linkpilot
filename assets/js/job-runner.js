@@ -71,11 +71,32 @@
         }).then(function (r) { return r.json(); });
     }
 
+    var LABELS = {
+        links:      'Links imported',
+        categories: 'Categories created',
+        skipped:    'Skipped (already existed)',
+        errors:     'Errors',
+        healthy:    'Healthy',
+        broken:     'Broken (4xx)',
+        server_error: 'Server error (5xx)',
+        error:      'Unreachable',
+        no_url:     'No URL',
+        unknown:    'Unknown',
+    };
+
+    var HIDDEN = ['clicks'];
+
     function summarize(data) {
         if (!data || !data.results || typeof data.results !== 'object') return '';
-        return Object.keys(data.results)
-            .map(function (k) { return k + ': ' + data.results[k]; })
-            .join(' · ');
+        var parts = [];
+        Object.keys(data.results).forEach(function (k) {
+            if (HIDDEN.indexOf(k) !== -1) return;
+            var v = data.results[k];
+            if (v === 0 && (k === 'errors' || k === 'skipped')) return;
+            var label = LABELS[k] || k;
+            parts.push(label + ': ' + v);
+        });
+        return parts.join(' · ');
     }
 
     function start(opts) {

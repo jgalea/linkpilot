@@ -196,10 +196,14 @@ class LP_Admin {
 
     public static function enqueue_admin_assets( $hook ) {
         $screen = get_current_screen();
-        $is_lp_screen = ( $screen && $screen->post_type === 'lp_link' );
-        $is_wizard    = ( $screen && $screen->id === 'admin_page_lp-setup' );
+        $page   = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
 
-        if ( ! $is_lp_screen && ! $is_wizard ) {
+        $lp_pages = array( 'lp-dashboard', 'lp-settings', 'lp-migrate', 'lp-setup', 'lp-import-export' );
+
+        $is_lp_screen = ( $screen && $screen->post_type === 'lp_link' );
+        $is_lp_page   = in_array( $page, $lp_pages, true );
+
+        if ( ! $is_lp_screen && ! $is_lp_page ) {
             return;
         }
 
