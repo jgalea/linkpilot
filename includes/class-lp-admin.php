@@ -132,6 +132,7 @@ class LP_Admin {
                 $new['lp_cloaked_url'] = __( 'Cloaked URL', 'linkpilot' );
                 $new['lp_clicks']      = __( 'Clicks', 'linkpilot' );
                 $new['lp_health']      = __( 'Health', 'linkpilot' );
+                $new['lp_qr']          = __( 'QR', 'linkpilot' );
             }
         }
         return $new;
@@ -160,6 +161,9 @@ class LP_Admin {
                 if ( $code ) {
                     echo ' <small>(' . esc_html( $code ) . ')</small>';
                 }
+                break;
+            case 'lp_qr':
+                echo '<a href="' . esc_url( LP_QR::get_download_url( $post_id ) ) . '" title="' . esc_attr__( 'Download QR code', 'linkpilot' ) . '"><span class="dashicons dashicons-download"></span></a>';
                 break;
         }
     }

@@ -38,6 +38,14 @@ class LPP_Settings {
             'sanitize_callback' => 'sanitize_text_field',
             'default' => 'yes',
         ) );
+        register_setting( 'lpp_settings_group', 'lpp_ga4_measurement_id', array(
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => '',
+        ) );
+        register_setting( 'lpp_settings_group', 'lpp_ga4_api_secret', array(
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => '',
+        ) );
     }
 
     public static function render_page() {
@@ -82,6 +90,20 @@ class LPP_Settings {
                                 <option value="no" <?php selected( get_option( 'lpp_enable_auto_linking', 'no' ), 'no' ); ?>><?php esc_html_e( 'Disabled', 'linkpilot-pro' ); ?></option>
                             </select>
                             <p class="description"><?php esc_html_e( 'Automatically insert managed links into content based on context understanding.', 'linkpilot-pro' ); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e( 'GA4 Measurement ID', 'linkpilot-pro' ); ?></th>
+                        <td>
+                            <input type="text" name="lpp_ga4_measurement_id" value="<?php echo esc_attr( get_option( 'lpp_ga4_measurement_id', '' ) ); ?>" class="regular-text" placeholder="G-XXXXXXXXXX" />
+                            <p class="description"><?php esc_html_e( 'Your GA4 property ID. Events fire server-side on every managed link click.', 'linkpilot-pro' ); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e( 'GA4 API Secret', 'linkpilot-pro' ); ?></th>
+                        <td>
+                            <input type="password" name="lpp_ga4_api_secret" value="<?php echo esc_attr( get_option( 'lpp_ga4_api_secret', '' ) ); ?>" class="regular-text" />
+                            <p class="description"><?php esc_html_e( 'Create in GA4 → Admin → Data Streams → Measurement Protocol API secrets.', 'linkpilot-pro' ); ?></p>
                         </td>
                     </tr>
                 </table>

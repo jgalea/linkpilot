@@ -50,6 +50,9 @@ function lpp_init() {
     }
 
     LPP_Auto_Linker::init();
+    LPP_Geo::init();
+    LPP_GA4::init();
+    LPP_Scheduling::init();
     LPP_Content_Gaps::init();
     LPP_REST_API::init();
     LPP_Suggestions::init();

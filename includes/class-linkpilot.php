@@ -31,6 +31,7 @@ final class LinkPilot {
             LP_Settings::init();
             LP_CSV::init();
             LP_Setup_Wizard::init();
+            LP_QR::init();
         }
 
         LP_Link_Fixer::init();
