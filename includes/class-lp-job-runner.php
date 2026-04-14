@@ -116,9 +116,10 @@ class LP_Job_Runner {
     public static function handle_scan() {
         self::verify();
 
-        $source = isset( $_POST['source'] ) ? sanitize_key( $_POST['source'] ) : '';
-        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( $_POST['job_id'] ) : '';
-        $id_map = isset( $_POST['id_map'] ) ? json_decode( wp_unslash( $_POST['id_map'] ), true ) : array();
+        $source  = isset( $_POST['source'] ) ? sanitize_key( $_POST['source'] ) : '';
+        $job_id  = isset( $_POST['job_id'] ) ? sanitize_key( $_POST['job_id'] ) : '';
+        $id_map  = isset( $_POST['id_map'] ) ? json_decode( wp_unslash( $_POST['id_map'] ), true ) : array();
+        $dry_run = ! empty( $_POST['dry_run'] );
 
         if ( ! isset( self::MIGRATORS[ $source ] ) ) {
             wp_send_json_error( array( 'message' => 'Unknown source' ), 400 );
@@ -126,13 +127,15 @@ class LP_Job_Runner {
 
         $source_name = self::MIGRATORS[ $source ]::get_source_name();
 
-        $state = get_transient( self::state_key( 'scan_' . $job_id ) );
+        $state_key = 'scan_' . ( $dry_run ? 'dry_' : '' ) . $job_id;
+        $state = get_transient( self::state_key( $state_key ) );
         if ( ! is_array( $state ) ) {
             $state = array(
                 'offset'       => 0,
                 'total'        => LP_Content_Scanner::get_total_posts(),
                 'replacements' => 0,
                 'updated'      => 0,
+                'samples'      => array(),
                 'id_map'       => is_array( $id_map ) ? $id_map : array(),
             );
         }
@@ -140,23 +143,32 @@ class LP_Job_Runner {
         $ids = LP_Content_Scanner::get_post_ids( $state['offset'], self::SCAN_BATCH );
 
         if ( empty( $ids ) ) {
-            delete_transient( self::state_key( 'scan_' . $job_id ) );
+            delete_transient( self::state_key( $state_key ) );
             wp_send_json_success( array(
                 'done'         => true,
                 'processed'    => $state['offset'],
                 'total'        => $state['total'],
                 'replacements' => $state['replacements'],
                 'updated'      => $state['updated'],
+                'samples'      => $state['samples'],
+                'dry_run'      => $dry_run,
             ) );
         }
 
         $scanner = new LP_Content_Scanner( $state['id_map'], $source_name );
 
         foreach ( $ids as $post_id ) {
-            $reps = $scanner->scan_one_post( $post_id );
-            if ( $reps > 0 ) {
+            $result = $scanner->scan_one_post( $post_id, $dry_run );
+            if ( $result['changed'] ) {
                 $state['updated']++;
-                $state['replacements'] += $reps;
+                $state['replacements'] += $result['replacements'];
+                if ( count( $state['samples'] ) < 10 ) {
+                    $state['samples'][] = array(
+                        'id'           => $post_id,
+                        'title'        => $result['title'],
+                        'replacements' => $result['replacements'],
+                    );
+                }
             }
         }
 
@@ -164,9 +176,9 @@ class LP_Job_Runner {
         $done = $state['offset'] >= $state['total'];
 
         if ( $done ) {
-            delete_transient( self::state_key( 'scan_' . $job_id ) );
+            delete_transient( self::state_key( $state_key ) );
         } else {
-            set_transient( self::state_key( 'scan_' . $job_id ), $state, HOUR_IN_SECONDS );
+            set_transient( self::state_key( $state_key ), $state, HOUR_IN_SECONDS );
         }
 
         wp_send_json_success( array(
@@ -175,6 +187,8 @@ class LP_Job_Runner {
             'total'        => $state['total'],
             'replacements' => $state['replacements'],
             'updated'      => $state['updated'],
+            'samples'      => $state['samples'],
+            'dry_run'      => $dry_run,
         ) );
     }
 

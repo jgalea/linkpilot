@@ -92,6 +92,8 @@ $competitors = LP_Setup_Wizard::detect_competitors();
 
         <div id="lp-wizard-progress"></div>
         <div id="lp-wizard-scan-progress"></div>
+        <div id="lp-wizard-scan-review" style="display:none;"></div>
+        <div id="lp-wizard-scan-apply"></div>
     </form>
 
     <p><a href="<?php echo esc_url( admin_url( 'edit.php?post_type=lp_link' ) ); ?>"><?php esc_html_e( 'Skip setup', 'linkpilot' ); ?></a></p>
@@ -101,6 +103,11 @@ $competitors = LP_Setup_Wizard::detect_competitors();
 (function () {
     var form = document.getElementById('lp-wizard-form');
     var btn  = document.getElementById('lp-wizard-submit');
+
+    function finalizeSetup() {
+        btn.textContent = '<?php echo esc_js( __( 'Finishing…', 'linkpilot' ) ); ?>';
+        form.submit();
+    }
 
     form.addEventListener('submit', function (e) {
         var sourceInput = form.querySelector('input[name="lp_migrate_source"]:checked');
@@ -116,11 +123,6 @@ $competitors = LP_Setup_Wizard::detect_competitors();
 
         var doScan = form.querySelector('input[name="lp_scan_content"]').checked;
 
-        function finalizeSetup() {
-            btn.textContent = '<?php echo esc_js( __( 'Finishing…', 'linkpilot' ) ); ?>';
-            form.submit();
-        }
-
         LPJobRunner.start({
             action: 'lp_job_migrate',
             params: { source: source },
@@ -133,13 +135,81 @@ $competitors = LP_Setup_Wizard::detect_competitors();
                 }
                 LPJobRunner.start({
                     action: 'lp_job_scan',
-                    params: { source: source, id_map: data.id_map },
+                    params: { source: source, id_map: data.id_map, dry_run: 1 },
                     containerId: 'lp-wizard-scan-progress',
-                    label: '<?php echo esc_js( __( 'Scanning posts for old shortcodes/links', 'linkpilot' ) ); ?>',
-                    onDone: function () { finalizeSetup(); }
+                    label: '<?php echo esc_js( __( 'Previewing content changes (dry run)', 'linkpilot' ) ); ?>',
+                    onDone: function (scanData) { showScanReview(source, scanData, data.id_map); }
                 });
             }
         });
     });
+
+    function showScanReview(source, data, idMap) {
+        var container = document.getElementById('lp-wizard-scan-review');
+        while (container.firstChild) container.removeChild(container.firstChild);
+        container.style.cssText = 'background:#fff;border:1px solid #ccd0d4;padding:16px;border-radius:4px;margin:12px 0;';
+
+        var h = document.createElement('h3');
+        h.style.marginTop = '0';
+        h.textContent = '<?php echo esc_js( __( 'Review before applying', 'linkpilot' ) ); ?>';
+        container.appendChild(h);
+
+        var p = document.createElement('p');
+        p.textContent = data.updated + ' <?php echo esc_js( __( 'posts would be updated', 'linkpilot' ) ); ?> · ' +
+            data.replacements + ' <?php echo esc_js( __( 'replacements total', 'linkpilot' ) ); ?>.';
+        container.appendChild(p);
+
+        if (data.samples && data.samples.length > 0) {
+            var lh = document.createElement('p');
+            lh.style.cssText = 'font-weight:600;margin-bottom:4px;';
+            lh.textContent = '<?php echo esc_js( __( 'Examples of affected posts:', 'linkpilot' ) ); ?>';
+            container.appendChild(lh);
+            var ul = document.createElement('ul');
+            ul.style.cssText = 'margin:0 0 12px 20px;';
+            data.samples.forEach(function (s) {
+                var li = document.createElement('li');
+                li.textContent = s.title + ' (' + s.replacements + ' replacement' + (s.replacements === 1 ? '' : 's') + ')';
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        }
+
+        var note = document.createElement('p');
+        note.style.cssText = 'font-size:12px;color:#555;';
+        note.textContent = '<?php echo esc_js( __( 'Post revisions are kept automatically. You can roll back any post via Edit Post → Revisions.', 'linkpilot' ) ); ?>';
+        container.appendChild(note);
+
+        if (data.updated === 0) {
+            container.style.display = 'block';
+            setTimeout(finalizeSetup, 500);
+            return;
+        }
+
+        var apply = document.createElement('button');
+        apply.type = 'button';
+        apply.className = 'button button-primary';
+        apply.textContent = '<?php echo esc_js( __( 'Apply changes and finish', 'linkpilot' ) ); ?>';
+        var skip = document.createElement('button');
+        skip.type = 'button';
+        skip.className = 'button';
+        skip.style.marginLeft = '8px';
+        skip.textContent = '<?php echo esc_js( __( 'Skip content update', 'linkpilot' ) ); ?>';
+        container.appendChild(apply);
+        container.appendChild(skip);
+        container.style.display = 'block';
+
+        apply.addEventListener('click', function () {
+            apply.disabled = true;
+            skip.remove();
+            LPJobRunner.start({
+                action: 'lp_job_scan',
+                params: { source: source, id_map: idMap, dry_run: 0 },
+                containerId: 'lp-wizard-scan-apply',
+                label: '<?php echo esc_js( __( 'Applying changes', 'linkpilot' ) ); ?>',
+                onDone: function () { finalizeSetup(); }
+            });
+        });
+        skip.addEventListener('click', function () { finalizeSetup(); });
+    }
 })();
 </script>

@@ -59,23 +59,28 @@ class LP_Content_Scanner {
         ) ) );
     }
 
-    public function scan_one_post( $post_id ) {
+    public function scan_one_post( $post_id, $dry_run = false ) {
         $post = get_post( $post_id );
         if ( ! $post ) {
-            return 0;
+            return array( 'replacements' => 0, 'changed' => false, 'title' => '' );
         }
 
         $results     = array( 'replacements' => 0 );
         $new_content = $this->replace_in_content( $post->post_content, $results );
+        $changed     = ( $new_content !== $post->post_content );
 
-        if ( $new_content !== $post->post_content ) {
+        if ( $changed && ! $dry_run ) {
             wp_update_post( array(
                 'ID'           => $post->ID,
                 'post_content' => $new_content,
             ) );
         }
 
-        return $results['replacements'];
+        return array(
+            'replacements' => $results['replacements'],
+            'changed'      => $changed,
+            'title'        => $post->post_title,
+        );
     }
 
     private function replace_in_content( $content, &$results ) {

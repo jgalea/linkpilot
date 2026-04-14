@@ -53,6 +53,8 @@ foreach ( $migrators as $key => $class ) {
 
                 <div class="lp-migration-progress" id="lp-progress-<?php echo esc_attr( $key ); ?>"></div>
                 <div class="lp-scan-progress" id="lp-scan-<?php echo esc_attr( $key ); ?>"></div>
+                <div class="lp-scan-review" id="lp-scan-review-<?php echo esc_attr( $key ); ?>" style="display:none;"></div>
+                <div class="lp-scan-apply-progress" id="lp-scan-apply-<?php echo esc_attr( $key ); ?>"></div>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
@@ -83,15 +85,103 @@ foreach ( $migrators as $key => $class ) {
                 }
                 LPJobRunner.start({
                     action: 'lp_job_scan',
-                    params: { source: source, id_map: data.id_map },
+                    params: { source: source, id_map: data.id_map, dry_run: 1 },
                     containerId: 'lp-scan-' + source,
-                    label: '<?php echo esc_js( __( 'Scanning posts for old shortcodes/links', 'linkpilot' ) ); ?>',
-                    onDone: function () {
-                        btn.textContent = '<?php echo esc_js( __( 'Done', 'linkpilot' ) ); ?>';
+                    label: '<?php echo esc_js( __( 'Previewing content changes (dry run)', 'linkpilot' ) ); ?>',
+                    onDone: function (scanData) {
+                        renderScanReview(source, scanData, data.id_map);
                     }
                 });
             }
         });
     });
+
+    function renderScanReview(source, data, idMap) {
+        var container = document.getElementById('lp-scan-review-' + source);
+        var btnApply = document.createElement('button');
+        btnApply.type = 'button';
+        btnApply.className = 'button button-primary';
+        btnApply.textContent = '<?php echo esc_js( __( 'Apply changes to my posts', 'linkpilot' ) ); ?>';
+
+        var btnSkip = document.createElement('button');
+        btnSkip.type = 'button';
+        btnSkip.className = 'button';
+        btnSkip.style.marginLeft = '8px';
+        btnSkip.textContent = '<?php echo esc_js( __( 'Skip content update', 'linkpilot' ) ); ?>';
+
+        while (container.firstChild) container.removeChild(container.firstChild);
+        container.style.cssText = 'background:#fff;border:1px solid #ccd0d4;padding:16px;border-radius:4px;margin:12px 0;';
+
+        var heading = document.createElement('h3');
+        heading.style.marginTop = '0';
+        heading.textContent = '<?php echo esc_js( __( 'Review before applying', 'linkpilot' ) ); ?>';
+        container.appendChild(heading);
+
+        var summary = document.createElement('p');
+        summary.textContent = data.updated + ' <?php echo esc_js( __( 'posts would be updated', 'linkpilot' ) ); ?> · ' +
+            data.replacements + ' <?php echo esc_js( __( 'replacements total', 'linkpilot' ) ); ?>.';
+        container.appendChild(summary);
+
+        if (data.samples && data.samples.length > 0) {
+            var listHeading = document.createElement('p');
+            listHeading.style.cssText = 'font-weight:600;margin-bottom:4px;';
+            listHeading.textContent = '<?php echo esc_js( __( 'Examples of affected posts:', 'linkpilot' ) ); ?>';
+            container.appendChild(listHeading);
+
+            var ul = document.createElement('ul');
+            ul.style.cssText = 'margin:0 0 12px 20px;';
+            data.samples.forEach(function (s) {
+                var li = document.createElement('li');
+                li.textContent = s.title + ' (' + s.replacements + ' replacement' + (s.replacements === 1 ? '' : 's') + ')';
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        } else {
+            var nothing = document.createElement('p');
+            nothing.style.color = '#757575';
+            nothing.textContent = '<?php echo esc_js( __( 'No changes needed — no old shortcodes or URLs found in your posts.', 'linkpilot' ) ); ?>';
+            container.appendChild(nothing);
+        }
+
+        var note = document.createElement('p');
+        note.style.cssText = 'font-size:12px;color:#555;';
+        note.textContent = '<?php echo esc_js( __( 'Post revisions are kept automatically, so you can roll back any post later via Edit Post → Revisions.', 'linkpilot' ) ); ?>';
+        container.appendChild(note);
+
+        if (data.updated > 0) {
+            container.appendChild(btnApply);
+            container.appendChild(btnSkip);
+        } else {
+            var ok = document.createElement('button');
+            ok.type = 'button';
+            ok.className = 'button button-primary';
+            ok.textContent = '<?php echo esc_js( __( 'Close', 'linkpilot' ) ); ?>';
+            ok.addEventListener('click', function () { container.style.display = 'none'; });
+            container.appendChild(ok);
+        }
+
+        container.style.display = 'block';
+
+        btnApply.addEventListener('click', function () {
+            btnApply.disabled = true;
+            btnApply.textContent = '<?php echo esc_js( __( 'Applying…', 'linkpilot' ) ); ?>';
+            btnSkip.remove();
+            LPJobRunner.start({
+                action: 'lp_job_scan',
+                params: { source: source, id_map: idMap, dry_run: 0 },
+                containerId: 'lp-scan-apply-' + source,
+                label: '<?php echo esc_js( __( 'Applying changes', 'linkpilot' ) ); ?>',
+                onDone: function () {
+                    btnApply.textContent = '<?php echo esc_js( __( 'Done', 'linkpilot' ) ); ?>';
+                }
+            });
+        });
+
+        btnSkip.addEventListener('click', function () {
+            container.style.display = 'none';
+            var btn = document.querySelector('.lp-migrator-card[data-source="' + source + '"] .lp-start-migration');
+            if (btn) btn.textContent = '<?php echo esc_js( __( 'Done (content update skipped)', 'linkpilot' ) ); ?>';
+        });
+    }
 })();
 </script>
