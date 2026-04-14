@@ -122,7 +122,16 @@ class LP_Admin {
         }
     }
 
+    public static function unset_noisy_columns( $columns ) {
+        // Koko Analytics Plus and similar plugins add irrelevant columns to lp_link.
+        foreach ( array( 'koko-analytics-views', 'koko-analytics' ) as $k ) {
+            unset( $columns[ $k ] );
+        }
+        return $columns;
+    }
+
     public static function custom_columns( $columns ) {
+        $columns = self::unset_noisy_columns( $columns );
         $new = array();
         foreach ( $columns as $key => $val ) {
             $new[ $key ] = $val;

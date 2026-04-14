@@ -78,7 +78,7 @@ class LP_Post_Type {
             'hierarchical'      => false,
             'public'            => false,
             'show_ui'           => true,
-            'show_admin_column' => true,
+            'show_admin_column' => false,
             'show_in_rest'      => true,
             'rewrite'           => false,
         ) );
