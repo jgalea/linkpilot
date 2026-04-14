@@ -6,7 +6,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LP_QR {
 
     public static function init() {
+        if ( get_option( 'lp_enable_qr', 'no' ) !== 'yes' ) {
+            return;
+        }
         add_action( 'admin_post_lp_qr_download', array( __CLASS__, 'handle_download' ) );
+    }
+
+    public static function is_enabled() {
+        return get_option( 'lp_enable_qr', 'no' ) === 'yes';
     }
 
     public static function get_download_url( $post_id ) {

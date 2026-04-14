@@ -131,7 +131,9 @@ class LP_Admin {
                 $new['lp_cloaked_url'] = __( 'Cloaked URL', 'linkpilot' );
                 $new['lp_clicks_30d']  = __( 'Clicks (30d)', 'linkpilot' );
                 $new['lp_health']      = __( 'Health', 'linkpilot' );
-                $new['lp_qr']          = __( 'QR', 'linkpilot' );
+                if ( LP_QR::is_enabled() ) {
+                    $new['lp_qr'] = __( 'QR', 'linkpilot' );
+                }
             }
         }
         return $new;
