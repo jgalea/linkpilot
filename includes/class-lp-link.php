@@ -21,6 +21,34 @@ class LP_Link {
         'rel_tags'           => '_lp_rel_tags',
     );
 
+    const META_SLUG_HISTORY = '_lp_slug_history';
+
+    public static function init() {
+        add_action( 'post_updated', array( __CLASS__, 'track_slug_change' ), 10, 3 );
+    }
+
+    public static function track_slug_change( $post_id, $post_after, $post_before ) {
+        if ( $post_after->post_type !== 'lp_link' ) {
+            return;
+        }
+        if ( $post_after->post_name === $post_before->post_name ) {
+            return;
+        }
+        if ( ! $post_before->post_name ) {
+            return;
+        }
+
+        $history = get_post_meta( $post_id, self::META_SLUG_HISTORY, true );
+        if ( ! is_array( $history ) ) {
+            $history = array();
+        }
+
+        $history[] = $post_before->post_name;
+        $history   = array_values( array_unique( $history ) );
+
+        update_post_meta( $post_id, self::META_SLUG_HISTORY, $history );
+    }
+
     public function __construct( $post_id ) {
         $this->id   = (int) $post_id;
         $this->post = get_post( $this->id );
@@ -127,12 +155,35 @@ class LP_Link {
     }
 
     public static function find_by_slug( $slug ) {
+        $slug  = sanitize_title( $slug );
         $posts = get_posts( array(
             'post_type'      => 'lp_link',
-            'name'           => sanitize_title( $slug ),
+            'name'           => $slug,
             'post_status'    => 'publish',
             'posts_per_page' => 1,
             'no_found_rows'  => true,
+        ) );
+        if ( ! empty( $posts ) ) {
+            return new self( $posts[0]->ID );
+        }
+
+        return self::find_by_old_slug( $slug );
+    }
+
+    public static function find_by_old_slug( $slug ) {
+        $slug  = sanitize_title( $slug );
+        $posts = get_posts( array(
+            'post_type'      => 'lp_link',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'no_found_rows'  => true,
+            'meta_query'     => array(
+                array(
+                    'key'     => self::META_SLUG_HISTORY,
+                    'value'   => serialize( $slug ),
+                    'compare' => 'LIKE',
+                ),
+            ),
         ) );
         if ( empty( $posts ) ) {
             return null;

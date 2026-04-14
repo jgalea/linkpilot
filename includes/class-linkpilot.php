@@ -24,6 +24,7 @@ final class LinkPilot {
         add_action( 'init', array( 'LP_Redirect', 'maybe_redirect_prefixed' ), 1 );
         add_action( 'template_redirect', array( 'LP_Redirect', 'maybe_redirect_fallback' ) );
 
+        LP_Link::init();
         LP_Link_Health::init();
 
         if ( is_admin() ) {
