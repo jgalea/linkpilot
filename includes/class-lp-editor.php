@@ -9,6 +9,14 @@ class LP_Editor {
         add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor' ) );
         add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_classic_editor' ) );
         add_action( 'wp_ajax_lp_search_links', array( __CLASS__, 'ajax_search_links' ) );
+        add_filter( 'mce_buttons', array( __CLASS__, 'register_tinymce_button' ) );
+    }
+
+    public static function register_tinymce_button( $buttons ) {
+        if ( ! in_array( 'linkpilot', $buttons, true ) ) {
+            $buttons[] = 'linkpilot';
+        }
+        return $buttons;
     }
 
     public static function enqueue_block_editor() {
