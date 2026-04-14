@@ -130,7 +130,8 @@ class LP_Admin {
             if ( $key === 'title' ) {
                 $new['lp_destination'] = __( 'Destination', 'linkpilot' );
                 $new['lp_cloaked_url'] = __( 'Cloaked URL', 'linkpilot' );
-                $new['lp_clicks']      = __( 'Clicks', 'linkpilot' );
+                $new['lp_clicks_30d']  = __( 'Clicks (30d)', 'linkpilot' );
+                $new['lp_clicks']      = __( 'Clicks (all)', 'linkpilot' );
                 $new['lp_health']      = __( 'Health', 'linkpilot' );
                 $new['lp_qr']          = __( 'QR', 'linkpilot' );
             }
@@ -149,8 +150,13 @@ class LP_Admin {
                 $cloaked = $link->get_cloaked_url();
                 echo '<code>' . esc_html( str_replace( home_url(), '', $cloaked ) ) . '</code>';
                 break;
+            case 'lp_clicks_30d':
+                $count = LP_Clicks_DB::get_clicks_for_link( $post_id, 30 );
+                echo '<span class="lp-click-count" title="' . esc_attr__( 'Human clicks in the last 30 days (bots excluded)', 'linkpilot' ) . '">' . esc_html( number_format_i18n( $count ) ) . '</span>';
+                break;
             case 'lp_clicks':
-                echo '<span class="lp-click-count">' . esc_html( number_format_i18n( LP_Clicks_DB::get_total_clicks( $post_id ) ) ) . '</span>';
+                $total = LP_Clicks_DB::get_total_clicks( $post_id );
+                echo '<span class="lp-click-count" title="' . esc_attr__( 'All-time human clicks recorded by LinkPilot (bots excluded). Includes clicks migrated from other plugins.', 'linkpilot' ) . '">' . esc_html( number_format_i18n( $total ) ) . '</span>';
                 break;
             case 'lp_health':
                 $status = get_post_meta( $post_id, LP_Link_Health::META_STATUS, true );
