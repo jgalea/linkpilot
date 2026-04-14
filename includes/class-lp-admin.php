@@ -117,6 +117,10 @@ class LP_Admin {
                 update_post_meta( $post_id, '_lp_' . $field, sanitize_text_field( $_POST[ $post_key ] ) );
             }
         }
+
+        if ( isset( $_POST['lp_js_redirect'] ) ) {
+            update_post_meta( $post_id, '_lp_js_redirect', sanitize_text_field( $_POST['lp_js_redirect'] ) );
+        }
     }
 
     public static function custom_columns( $columns ) {

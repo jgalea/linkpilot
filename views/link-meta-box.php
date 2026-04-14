@@ -10,6 +10,7 @@ $new_window    = get_post_meta( $link->get_id(), '_lp_new_window', true ) ?: 'de
 $pass_qs       = get_post_meta( $link->get_id(), '_lp_pass_query_str', true ) ?: 'default';
 $css_classes   = $link->get_css_classes();
 $rel_tags      = get_post_meta( $link->get_id(), '_lp_rel_tags', true );
+$js_redirect   = get_post_meta( $link->get_id(), '_lp_js_redirect', true ) ?: 'no';
 ?>
 <table class="form-table lp-meta-box">
     <tr>
@@ -88,6 +89,16 @@ $rel_tags      = get_post_meta( $link->get_id(), '_lp_rel_tags', true );
         <td>
             <input type="text" id="lp_rel_tags" name="lp_rel_tags" value="<?php echo esc_attr( $rel_tags ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'e.g. ugc', 'linkpilot' ); ?>" />
             <p class="description"><?php esc_html_e( 'Space-separated. Nofollow and sponsored are handled by their own settings above.', 'linkpilot' ); ?></p>
+        </td>
+    </tr>
+    <tr>
+        <th><label for="lp_js_redirect"><?php esc_html_e( 'JavaScript Redirect', 'linkpilot' ); ?></label></th>
+        <td>
+            <select id="lp_js_redirect" name="lp_js_redirect">
+                <option value="no" <?php selected( $js_redirect, 'no' ); ?>><?php esc_html_e( 'No (use HTTP redirect)', 'linkpilot' ); ?></option>
+                <option value="yes" <?php selected( $js_redirect, 'yes' ); ?>><?php esc_html_e( 'Yes (preserves referrer)', 'linkpilot' ); ?></option>
+            </select>
+            <p class="description"><?php esc_html_e( 'Use JavaScript to redirect. Preserves the HTTP referrer for affiliate networks that require it. Slower than HTTP redirect.', 'linkpilot' ); ?></p>
         </td>
     </tr>
 </table>
