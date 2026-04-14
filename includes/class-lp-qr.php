@@ -52,9 +52,13 @@ class LP_QR {
         }
 
         header( 'Content-Type: image/png' );
-        header( 'Content-Disposition: attachment; filename="linkpilot-qr-' . $slug . '.png"' );
+        header( 'Content-Disposition: attachment; filename="linkpilot-qr-' . sanitize_file_name( $slug ) . '.png"' );
         header( 'Cache-Control: private, max-age=3600' );
-        echo wp_remote_retrieve_body( $response );
+
+        $body = wp_remote_retrieve_body( $response );
+        // Binary PNG passthrough — escaping would corrupt the bytes.
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo $body;
         exit;
     }
 }

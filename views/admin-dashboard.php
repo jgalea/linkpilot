@@ -55,11 +55,20 @@ $top_links = $wpdb->get_results( $wpdb->prepare(
 
     <?php
     $health = LP_Link_Health::get_summary();
-    $health_checked = isset( $_GET['lp_health_checked'] ) ? (int) $_GET['lp_health_checked'] : 0;
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only query param, not processed.
+    $health_checked = isset( $_GET['lp_health_checked'] ) ? absint( wp_unslash( $_GET['lp_health_checked'] ) ) : 0;
     ?>
 
     <?php if ( $health_checked ) : ?>
-        <div class="notice notice-success"><p><?php printf( esc_html__( 'Health check complete: %d links checked.', 'linkpilot' ), $health_checked ); ?></p></div>
+        <div class="notice notice-success"><p>
+            <?php
+            echo esc_html( sprintf(
+                /* translators: %d: number of links checked */
+                _n( 'Health check complete: %d link checked.', 'Health check complete: %d links checked.', $health_checked, 'linkpilot' ),
+                absint( $health_checked )
+            ) );
+            ?>
+        </p></div>
     <?php endif; ?>
 
     <h2><?php esc_html_e( 'Link Health', 'linkpilot' ); ?></h2>

@@ -36,14 +36,20 @@ LinkPilot helps you manage all your outbound links in one place. Create cloaked,
 * Query string passthrough
 * Dashboard with click statistics
 
-**Pro Features (coming soon):**
+== External Services ==
 
-* AI-powered link suggestions while writing
-* Smart auto-linking with content understanding
-* Automated link health monitoring
-* Geo-targeted redirects
-* Advanced analytics
-* Content gap detection
+This plugin can optionally connect to an external service when you enable the **QR Code** feature. QR code generation is **disabled by default** and only runs when you opt in under LinkPilot > Settings.
+
+**QR Server (api.qrserver.com)**
+
+When enabled, LinkPilot sends the cloaked URL you want to encode to api.qrserver.com to generate a QR code PNG image. No personal data or visitor data is transmitted. This only runs on demand, when an administrator clicks the QR download button in the admin.
+
+* Service provider: QR Server
+* Data sent: the cloaked URL you are generating a QR code for
+* Terms of service: https://goqr.me/api/
+* Privacy policy: https://goqr.me/privacy/
+
+If you do not enable the QR feature, no external service is ever contacted.
 
 == Installation ==
 

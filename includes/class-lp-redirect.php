@@ -51,7 +51,7 @@ class LP_Redirect {
     }
 
     private static function do_redirect( LP_Link $link ) {
-        $query_string = isset( $_SERVER['QUERY_STRING'] ) ? $_SERVER['QUERY_STRING'] : '';
+        $query_string = isset( $_SERVER['QUERY_STRING'] ) ? sanitize_text_field( wp_unslash( $_SERVER['QUERY_STRING'] ) ) : '';
         $destination  = $link->get_final_destination_url( $query_string );
 
         $destination  = apply_filters( 'lp_redirect_destination', $destination, $link );
@@ -81,7 +81,9 @@ class LP_Redirect {
         }
 
         $redirect_type = $link->get_redirect_type();
-        wp_redirect( $destination, $redirect_type );
+        // Intentional wp_redirect — this is the whole point of the plugin: redirect the
+        // cloaked link to any external destination the user configured.
+        wp_redirect( $destination, $redirect_type ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- outbound user-configured redirect.
         exit;
     }
 
@@ -98,7 +100,7 @@ class LP_Redirect {
     }
 
     private static function get_request_path() {
-        $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+        $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
         $parsed      = wp_parse_url( $request_uri );
         $path        = isset( $parsed['path'] ) ? $parsed['path'] : '/';
 

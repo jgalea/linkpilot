@@ -106,7 +106,12 @@ class LP_Settings {
                 case 'text':
                     echo '<input type="text" name="' . esc_attr( $id ) . '" value="' . esc_attr( $value ) . '" class="regular-text" />';
                     if ( $id === 'lp_link_prefix' ) {
-                        echo '<p class="description">' . sprintf( esc_html__( 'Your links will look like: %s/%s/your-link/', 'linkpilot' ), esc_html( home_url() ), esc_html( $value ) ) . '</p>';
+                        echo '<p class="description">' . esc_html( sprintf(
+                            /* translators: 1: site home URL, 2: link prefix */
+                            __( 'Your links will look like: %1$s/%2$s/your-link/', 'linkpilot' ),
+                            home_url(),
+                            $value
+                        ) ) . '</p>';
                     }
                     break;
                 case 'select':

@@ -41,10 +41,12 @@ class LP_Job_Runner {
     }
 
     public static function handle_migrate() {
-        self::verify();
+        self::verify(); // Verifies nonce + capability; wp_send_json_error exits on failure.
 
-        $source = isset( $_POST['source'] ) ? sanitize_key( $_POST['source'] ) : '';
-        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( $_POST['job_id'] ) : '';
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in self::verify().
+        $source = isset( $_POST['source'] ) ? sanitize_key( wp_unslash( $_POST['source'] ) ) : '';
+        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( wp_unslash( $_POST['job_id'] ) ) : '';
+        // phpcs:enable WordPress.Security.NonceVerification.Missing
 
         if ( ! isset( self::MIGRATORS[ $source ] ) ) {
             wp_send_json_error( array( 'message' => 'Unknown source' ), 400 );
@@ -114,12 +116,14 @@ class LP_Job_Runner {
     }
 
     public static function handle_scan() {
-        self::verify();
+        self::verify(); // Verifies nonce + capability.
 
-        $source  = isset( $_POST['source'] ) ? sanitize_key( $_POST['source'] ) : '';
-        $job_id  = isset( $_POST['job_id'] ) ? sanitize_key( $_POST['job_id'] ) : '';
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in self::verify().
+        $source  = isset( $_POST['source'] ) ? sanitize_key( wp_unslash( $_POST['source'] ) ) : '';
+        $job_id  = isset( $_POST['job_id'] ) ? sanitize_key( wp_unslash( $_POST['job_id'] ) ) : '';
         $id_map  = isset( $_POST['id_map'] ) ? json_decode( wp_unslash( $_POST['id_map'] ), true ) : array();
         $dry_run = ! empty( $_POST['dry_run'] );
+        // phpcs:enable WordPress.Security.NonceVerification.Missing
 
         if ( ! isset( self::MIGRATORS[ $source ] ) ) {
             wp_send_json_error( array( 'message' => 'Unknown source' ), 400 );
@@ -193,9 +197,10 @@ class LP_Job_Runner {
     }
 
     public static function handle_health() {
-        self::verify();
+        self::verify(); // Verifies nonce + capability.
 
-        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( $_POST['job_id'] ) : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in self::verify().
+        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( wp_unslash( $_POST['job_id'] ) ) : '';
 
         $state = get_transient( self::state_key( 'health_' . $job_id ) );
         if ( ! is_array( $state ) ) {
@@ -246,9 +251,10 @@ class LP_Job_Runner {
     }
 
     public static function handle_health_one() {
-        self::verify();
+        self::verify(); // Verifies nonce + capability.
 
-        $post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in self::verify().
+        $post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
         if ( ! $post_id ) {
             wp_send_json_error( array( 'message' => 'Missing post_id' ), 400 );
         }

@@ -7,7 +7,7 @@ class LP_Bot_Detector {
 
     public static function is_bot( $user_agent = '' ) {
         if ( empty( $user_agent ) ) {
-            $user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+            $user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
         }
 
         if ( empty( $user_agent ) ) {

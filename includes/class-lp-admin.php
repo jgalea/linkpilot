@@ -94,7 +94,7 @@ class LP_Admin {
     }
 
     public static function save_link_meta( $post_id, $post ) {
-        if ( ! isset( $_POST['lp_link_nonce'] ) || ! wp_verify_nonce( $_POST['lp_link_nonce'], 'lp_save_link_meta' ) ) {
+        if ( ! isset( $_POST['lp_link_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['lp_link_nonce'] ) ), 'lp_save_link_meta' ) ) {
             return;
         }
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -104,21 +104,21 @@ class LP_Admin {
             return;
         }
 
-        // Use esc_url_raw for destination URL specifically
+        // Use esc_url_raw for destination URL specifically.
         if ( isset( $_POST['lp_destination_url'] ) ) {
-            update_post_meta( $post_id, '_lp_destination_url', esc_url_raw( $_POST['lp_destination_url'] ) );
+            update_post_meta( $post_id, '_lp_destination_url', esc_url_raw( wp_unslash( $_POST['lp_destination_url'] ) ) );
         }
 
         $text_fields = array( 'redirect_type', 'nofollow', 'sponsored', 'new_window', 'pass_query_str', 'css_classes', 'rel_tags' );
         foreach ( $text_fields as $field ) {
             $post_key = 'lp_' . $field;
             if ( isset( $_POST[ $post_key ] ) ) {
-                update_post_meta( $post_id, '_lp_' . $field, sanitize_text_field( $_POST[ $post_key ] ) );
+                update_post_meta( $post_id, '_lp_' . $field, sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) ) );
             }
         }
 
         if ( isset( $_POST['lp_js_redirect'] ) ) {
-            update_post_meta( $post_id, '_lp_js_redirect', sanitize_text_field( $_POST['lp_js_redirect'] ) );
+            update_post_meta( $post_id, '_lp_js_redirect', sanitize_text_field( wp_unslash( $_POST['lp_js_redirect'] ) ) );
         }
     }
 
@@ -196,7 +196,8 @@ class LP_Admin {
 
     public static function enqueue_admin_assets( $hook ) {
         $screen = get_current_screen();
-        $page   = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page detection, not processing form data.
+        $page   = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
         $lp_pages = array( 'lp-dashboard', 'lp-settings', 'lp-migrate', 'lp-setup', 'lp-import-export' );
 

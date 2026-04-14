@@ -36,7 +36,13 @@ foreach ( $migrators as $key => $class ) {
             <div class="lp-migrator-card" data-source="<?php echo esc_attr( $key ); ?>"
                  style="max-width: 700px; padding: 20px; background: #fff; border: 1px solid #ccd0d4; margin-top: 15px;">
                 <h2 style="margin-top: 0;"><?php echo esc_html( $info['name'] ); ?></h2>
-                <p><?php printf( esc_html__( '%s links found.', 'linkpilot' ), '<strong>' . esc_html( number_format_i18n( $info['count'] ) ) . '</strong>' ); ?></p>
+                <p>
+                    <?php echo wp_kses_post( sprintf(
+                        /* translators: %s: number of links found */
+                        __( '%s links found.', 'linkpilot' ),
+                        '<strong>' . esc_html( number_format_i18n( $info['count'] ) ) . '</strong>'
+                    ) ); ?>
+                </p>
 
                 <p>
                     <label>
@@ -47,7 +53,11 @@ foreach ( $migrators as $key => $class ) {
 
                 <p>
                     <button type="button" class="button button-primary lp-start-migration">
-                        <?php printf( esc_html__( 'Migrate from %s', 'linkpilot' ), esc_html( $info['name'] ) ); ?>
+                        <?php echo esc_html( sprintf(
+                            /* translators: %s: source plugin name */
+                            __( 'Migrate from %s', 'linkpilot' ),
+                            $info['name']
+                        ) ); ?>
                     </button>
                 </p>
 

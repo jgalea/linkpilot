@@ -23,13 +23,22 @@ class LP_CSV {
     }
 
     public static function render_page() {
-        $imported = isset( $_GET['lp_imported'] ) ? (int) $_GET['lp_imported'] : 0;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only query param, not processed.
+        $imported = isset( $_GET['lp_imported'] ) ? absint( $_GET['lp_imported'] ) : 0;
         ?>
         <div class="wrap">
             <h1><?php esc_html_e( 'Import / Export Links', 'linkpilot' ); ?></h1>
 
             <?php if ( $imported ) : ?>
-                <div class="notice notice-success"><p><?php printf( esc_html__( '%d links imported successfully.', 'linkpilot' ), $imported ); ?></p></div>
+                <div class="notice notice-success"><p>
+                    <?php
+                    echo esc_html( sprintf(
+                        /* translators: %d: number of links imported */
+                        _n( '%d link imported successfully.', '%d links imported successfully.', $imported, 'linkpilot' ),
+                        absint( $imported )
+                    ) );
+                    ?>
+                </p></div>
             <?php endif; ?>
 
             <h2><?php esc_html_e( 'Export', 'linkpilot' ); ?></h2>
@@ -71,15 +80,15 @@ class LP_CSV {
         header( 'Content-Type: text/csv; charset=utf-8' );
         header( 'Content-Disposition: attachment; filename=linkpilot-export-' . gmdate( 'Y-m-d' ) . '.csv' );
 
-        $output = fopen( 'php://output', 'w' );
-        fputcsv( $output, array( 'title', 'slug', 'destination_url', 'redirect_type', 'nofollow', 'sponsored', 'new_window', 'pass_query_str', 'css_classes', 'rel_tags', 'categories', 'tags', 'status' ) );
+        $rows   = array();
+        $rows[] = array( 'title', 'slug', 'destination_url', 'redirect_type', 'nofollow', 'sponsored', 'new_window', 'pass_query_str', 'css_classes', 'rel_tags', 'categories', 'tags', 'status' );
 
         foreach ( $links as $post ) {
             $link       = new LP_Link( $post->ID );
             $categories = wp_get_post_terms( $post->ID, 'lp_category', array( 'fields' => 'names' ) );
             $tags       = wp_get_post_terms( $post->ID, 'lp_tag', array( 'fields' => 'names' ) );
 
-            fputcsv( $output, array(
+            $rows[] = array(
                 $post->post_title,
                 $post->post_name,
                 $link->get_destination_url(),
@@ -93,11 +102,31 @@ class LP_CSV {
                 implode( '|', $categories ),
                 implode( '|', $tags ),
                 $post->post_status,
-            ) );
+            );
         }
 
-        fclose( $output );
+        foreach ( $rows as $row ) {
+            echo self::csv_encode_row( $row ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV field values are escaped by csv_encode_row().
+        }
         exit;
+    }
+
+    /**
+     * Encode a row as a single CSV line (RFC 4180), with LF terminator.
+     *
+     * @param array $fields Row values.
+     * @return string
+     */
+    private static function csv_encode_row( $fields ) {
+        $out = array();
+        foreach ( $fields as $field ) {
+            $str = (string) $field;
+            if ( preg_match( '/[",\r\n]/', $str ) ) {
+                $str = '"' . str_replace( '"', '""', $str ) . '"';
+            }
+            $out[] = $str;
+        }
+        return implode( ',', $out ) . "\n";
     }
 
     public static function import() {
@@ -106,20 +135,35 @@ class LP_CSV {
         }
         check_admin_referer( 'lp_import_csv' );
 
-        if ( ! isset( $_FILES['lp_csv_file'] ) || $_FILES['lp_csv_file']['error'] !== UPLOAD_ERR_OK ) {
-            wp_die( 'File upload failed.' );
+        if ( ! isset( $_FILES['lp_csv_file'] ) || ! isset( $_FILES['lp_csv_file']['error'] ) || UPLOAD_ERR_OK !== (int) $_FILES['lp_csv_file']['error'] ) {
+            wp_die( esc_html__( 'File upload failed.', 'linkpilot' ) );
         }
 
-        $file = fopen( $_FILES['lp_csv_file']['tmp_name'], 'r' );
-        if ( ! $file ) {
-            wp_die( 'Could not read file.' );
+        $tmp_name = isset( $_FILES['lp_csv_file']['tmp_name'] ) ? sanitize_text_field( wp_unslash( $_FILES['lp_csv_file']['tmp_name'] ) ) : '';
+        if ( '' === $tmp_name || ! is_uploaded_file( $tmp_name ) ) {
+            wp_die( esc_html__( 'Invalid upload.', 'linkpilot' ) );
         }
 
-        $header  = fgetcsv( $file );
-        $count   = 0;
+        $contents = file_get_contents( $tmp_name ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading local uploaded file, not remote.
+        if ( false === $contents ) {
+            wp_die( esc_html__( 'Could not read file.', 'linkpilot' ) );
+        }
+
+        $lines = preg_split( '/\r\n|\r|\n/', $contents );
+        $count = 0;
+
+        $header_line = array_shift( $lines );
+        if ( null === $header_line ) {
+            wp_die( esc_html__( 'Empty file.', 'linkpilot' ) );
+        }
+        $header  = str_getcsv( $header_line );
         $col_map = array_flip( $header );
 
-        while ( ( $row = fgetcsv( $file ) ) !== false ) {
+        foreach ( $lines as $line ) {
+            if ( '' === trim( $line ) ) {
+                continue;
+            }
+            $row = str_getcsv( $line );
             $title = isset( $col_map['title'] ) ? $row[ $col_map['title'] ] : '';
             $slug  = isset( $col_map['slug'] ) ? $row[ $col_map['slug'] ] : sanitize_title( $title );
             $url   = isset( $col_map['destination_url'] ) ? $row[ $col_map['destination_url'] ] : '';
@@ -183,9 +227,7 @@ class LP_CSV {
             $count++;
         }
 
-        fclose( $file );
-
-        wp_redirect( admin_url( 'edit.php?post_type=lp_link&page=lp-import-export&lp_imported=' . $count ) );
+        wp_safe_redirect( admin_url( 'edit.php?post_type=lp_link&page=lp-import-export&lp_imported=' . $count ) );
         exit;
     }
 }

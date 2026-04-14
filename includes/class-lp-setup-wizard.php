@@ -34,11 +34,12 @@ class LP_Setup_Wizard {
         }
         delete_transient( 'lp_activation_redirect' );
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- isset-only check to skip during multi-plugin activation flow.
         if ( wp_doing_ajax() || is_network_admin() || isset( $_GET['activate-multi'] ) ) {
             return;
         }
 
-        wp_redirect( admin_url( 'admin.php?page=lp-setup' ) );
+        wp_safe_redirect( admin_url( 'admin.php?page=lp-setup' ) );
         exit;
     }
 
@@ -47,13 +48,20 @@ class LP_Setup_Wizard {
         if ( ! $screen || $screen->id === 'admin_page_lp-setup' ) {
             return;
         }
+        $allowed = array( 'a' => array( 'href' => array() ) );
         ?>
         <div class="notice notice-info is-dismissible">
             <p>
-                <?php printf(
-                    __( 'Welcome to LinkPilot! <a href="%s">Run the setup wizard</a> to get started.', 'linkpilot' ),
-                    esc_url( admin_url( 'admin.php?page=lp-setup' ) )
-                ); ?>
+                <?php
+                echo wp_kses(
+                    sprintf(
+                        /* translators: %s: URL to the setup wizard */
+                        __( 'Welcome to LinkPilot! <a href="%s">Run the setup wizard</a> to get started.', 'linkpilot' ),
+                        esc_url( admin_url( 'admin.php?page=lp-setup' ) )
+                    ),
+                    $allowed
+                );
+                ?>
             </p>
         </div>
         <?php
@@ -88,16 +96,16 @@ class LP_Setup_Wizard {
         check_admin_referer( 'lp_wizard_save' );
 
         if ( isset( $_POST['lp_link_prefix'] ) ) {
-            update_option( 'lp_link_prefix', sanitize_text_field( $_POST['lp_link_prefix'] ) );
+            update_option( 'lp_link_prefix', sanitize_text_field( wp_unslash( $_POST['lp_link_prefix'] ) ) );
         }
         if ( isset( $_POST['lp_redirect_type'] ) ) {
-            update_option( 'lp_redirect_type', sanitize_text_field( $_POST['lp_redirect_type'] ) );
+            update_option( 'lp_redirect_type', sanitize_text_field( wp_unslash( $_POST['lp_redirect_type'] ) ) );
         }
         if ( isset( $_POST['lp_nofollow'] ) ) {
-            update_option( 'lp_nofollow', sanitize_text_field( $_POST['lp_nofollow'] ) );
+            update_option( 'lp_nofollow', sanitize_text_field( wp_unslash( $_POST['lp_nofollow'] ) ) );
         }
         if ( isset( $_POST['lp_new_window'] ) ) {
-            update_option( 'lp_new_window', sanitize_text_field( $_POST['lp_new_window'] ) );
+            update_option( 'lp_new_window', sanitize_text_field( wp_unslash( $_POST['lp_new_window'] ) ) );
         }
 
         // If migration was requested AND not already handled by AJAX, run it synchronously.
@@ -111,7 +119,7 @@ class LP_Setup_Wizard {
                 'easyaffiliatelinks' => 'LP_Migrator_EasyAffiliateLinks',
             );
 
-            $source = sanitize_key( $_POST['lp_migrate_source'] );
+            $source = sanitize_key( wp_unslash( $_POST['lp_migrate_source'] ) );
             if ( isset( $migrators[ $source ] ) ) {
                 $class    = $migrators[ $source ];
                 $migrator = new $class();
@@ -127,7 +135,7 @@ class LP_Setup_Wizard {
         update_option( 'lp_setup_complete', true );
         flush_rewrite_rules();
 
-        wp_redirect( admin_url( 'edit.php?post_type=lp_link&page=lp-dashboard&lp_setup_done=1' ) );
+        wp_safe_redirect( admin_url( 'edit.php?post_type=lp_link&page=lp-dashboard&lp_setup_done=1' ) );
         exit;
     }
 

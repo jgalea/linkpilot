@@ -24,7 +24,12 @@ $competitors = LP_Setup_Wizard::detect_competitors();
                 <label style="display: block; margin: 10px 0; padding: 10px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer;">
                     <input type="radio" name="lp_migrate_source" value="<?php echo esc_attr( $key ); ?>" />
                     <strong><?php echo esc_html( $info['name'] ); ?></strong>
-                    — <?php printf( esc_html__( '%s links found', 'linkpilot' ), '<strong>' . esc_html( number_format_i18n( $info['count'] ) ) . '</strong>' ); ?>
+                    —
+                    <?php echo wp_kses_post( sprintf(
+                        /* translators: %s: number of links found */
+                        __( '%s links found', 'linkpilot' ),
+                        '<strong>' . esc_html( number_format_i18n( $info['count'] ) ) . '</strong>'
+                    ) ); ?>
                 </label>
             <?php endforeach; ?>
 
@@ -50,7 +55,13 @@ $competitors = LP_Setup_Wizard::detect_competitors();
                     <th><?php esc_html_e( 'URL Prefix', 'linkpilot' ); ?></th>
                     <td>
                         <input type="text" name="lp_link_prefix" value="<?php echo esc_attr( get_option( 'lp_link_prefix', 'go' ) ); ?>" class="regular-text" />
-                        <p class="description"><?php printf( esc_html__( 'Links will be: %s/go/your-link/', 'linkpilot' ), esc_html( home_url() ) ); ?></p>
+                        <p class="description">
+                            <?php echo esc_html( sprintf(
+                                /* translators: %s: site home URL */
+                                __( 'Links will be: %s/go/your-link/', 'linkpilot' ),
+                                home_url()
+                            ) ); ?>
+                        </p>
                     </td>
                 </tr>
                 <tr>

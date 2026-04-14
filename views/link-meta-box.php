@@ -36,7 +36,13 @@ $js_redirect   = get_post_meta( $link->get_id(), '_lp_js_redirect', true ) ?: 'n
         <th><label for="lp_redirect_type"><?php esc_html_e( 'Redirect Type', 'linkpilot' ); ?></label></th>
         <td>
             <select id="lp_redirect_type" name="lp_redirect_type">
-                <option value="default" <?php selected( $redirect_type, 'default' ); ?>><?php printf( esc_html__( 'Default (%s)', 'linkpilot' ), esc_html( get_option( 'lp_redirect_type', '307' ) ) ); ?></option>
+                <option value="default" <?php selected( $redirect_type, 'default' ); ?>>
+                    <?php echo esc_html( sprintf(
+                        /* translators: %s: default redirect type */
+                        __( 'Default (%s)', 'linkpilot' ),
+                        get_option( 'lp_redirect_type', '307' )
+                    ) ); ?>
+                </option>
                 <option value="301" <?php selected( $redirect_type, '301' ); ?>>301 (Permanent)</option>
                 <option value="302" <?php selected( $redirect_type, '302' ); ?>>302 (Temporary)</option>
                 <option value="307" <?php selected( $redirect_type, '307' ); ?>>307 (Temporary Strict)</option>
@@ -48,7 +54,13 @@ $js_redirect   = get_post_meta( $link->get_id(), '_lp_js_redirect', true ) ?: 'n
         <th><label for="lp_nofollow"><?php esc_html_e( 'Nofollow', 'linkpilot' ); ?></label></th>
         <td>
             <select id="lp_nofollow" name="lp_nofollow">
-                <option value="default" <?php selected( $nofollow, 'default' ); ?>><?php printf( esc_html__( 'Default (%s)', 'linkpilot' ), get_option( 'lp_nofollow', 'yes' ) === 'yes' ? 'Yes' : 'No' ); ?></option>
+                <option value="default" <?php selected( $nofollow, 'default' ); ?>>
+                    <?php echo esc_html( sprintf(
+                        /* translators: %s: default nofollow setting (Yes or No) */
+                        __( 'Default (%s)', 'linkpilot' ),
+                        get_option( 'lp_nofollow', 'yes' ) === 'yes' ? __( 'Yes', 'linkpilot' ) : __( 'No', 'linkpilot' )
+                    ) ); ?>
+                </option>
                 <option value="yes" <?php selected( $nofollow, 'yes' ); ?>><?php esc_html_e( 'Yes', 'linkpilot' ); ?></option>
                 <option value="no" <?php selected( $nofollow, 'no' ); ?>><?php esc_html_e( 'No', 'linkpilot' ); ?></option>
             </select>
@@ -59,7 +71,13 @@ $js_redirect   = get_post_meta( $link->get_id(), '_lp_js_redirect', true ) ?: 'n
         <th><label for="lp_sponsored"><?php esc_html_e( 'Sponsored', 'linkpilot' ); ?></label></th>
         <td>
             <select id="lp_sponsored" name="lp_sponsored">
-                <option value="default" <?php selected( $sponsored, 'default' ); ?>><?php printf( esc_html__( 'Default (%s)', 'linkpilot' ), get_option( 'lp_sponsored', 'no' ) === 'yes' ? 'Yes' : 'No' ); ?></option>
+                <option value="default" <?php selected( $sponsored, 'default' ); ?>>
+                    <?php echo esc_html( sprintf(
+                        /* translators: %s: default sponsored setting (Yes or No) */
+                        __( 'Default (%s)', 'linkpilot' ),
+                        get_option( 'lp_sponsored', 'no' ) === 'yes' ? __( 'Yes', 'linkpilot' ) : __( 'No', 'linkpilot' )
+                    ) ); ?>
+                </option>
                 <option value="yes" <?php selected( $sponsored, 'yes' ); ?>><?php esc_html_e( 'Yes', 'linkpilot' ); ?></option>
                 <option value="no" <?php selected( $sponsored, 'no' ); ?>><?php esc_html_e( 'No', 'linkpilot' ); ?></option>
             </select>
@@ -70,7 +88,13 @@ $js_redirect   = get_post_meta( $link->get_id(), '_lp_js_redirect', true ) ?: 'n
         <th><label for="lp_new_window"><?php esc_html_e( 'Open in New Window', 'linkpilot' ); ?></label></th>
         <td>
             <select id="lp_new_window" name="lp_new_window">
-                <option value="default" <?php selected( $new_window, 'default' ); ?>><?php printf( esc_html__( 'Default (%s)', 'linkpilot' ), get_option( 'lp_new_window', 'yes' ) === 'yes' ? 'Yes' : 'No' ); ?></option>
+                <option value="default" <?php selected( $new_window, 'default' ); ?>>
+                    <?php echo esc_html( sprintf(
+                        /* translators: %s: default new-window setting (Yes or No) */
+                        __( 'Default (%s)', 'linkpilot' ),
+                        get_option( 'lp_new_window', 'yes' ) === 'yes' ? __( 'Yes', 'linkpilot' ) : __( 'No', 'linkpilot' )
+                    ) ); ?>
+                </option>
                 <option value="yes" <?php selected( $new_window, 'yes' ); ?>><?php esc_html_e( 'Yes', 'linkpilot' ); ?></option>
                 <option value="no" <?php selected( $new_window, 'no' ); ?>><?php esc_html_e( 'No', 'linkpilot' ); ?></option>
             </select>
@@ -81,7 +105,13 @@ $js_redirect   = get_post_meta( $link->get_id(), '_lp_js_redirect', true ) ?: 'n
         <th><label for="lp_pass_query_str"><?php esc_html_e( 'Pass Query Strings', 'linkpilot' ); ?></label></th>
         <td>
             <select id="lp_pass_query_str" name="lp_pass_query_str">
-                <option value="default" <?php selected( $pass_qs, 'default' ); ?>><?php printf( esc_html__( 'Default (%s)', 'linkpilot' ), get_option( 'lp_pass_query_str', 'no' ) === 'yes' ? 'Yes' : 'No' ); ?></option>
+                <option value="default" <?php selected( $pass_qs, 'default' ); ?>>
+                    <?php echo esc_html( sprintf(
+                        /* translators: %s: default pass-query-strings setting (Yes or No) */
+                        __( 'Default (%s)', 'linkpilot' ),
+                        get_option( 'lp_pass_query_str', 'no' ) === 'yes' ? __( 'Yes', 'linkpilot' ) : __( 'No', 'linkpilot' )
+                    ) ); ?>
+                </option>
                 <option value="yes" <?php selected( $pass_qs, 'yes' ); ?>><?php esc_html_e( 'Yes', 'linkpilot' ); ?></option>
                 <option value="no" <?php selected( $pass_qs, 'no' ); ?>><?php esc_html_e( 'No', 'linkpilot' ); ?></option>
             </select>
