@@ -115,7 +115,8 @@ class LP_Link {
     }
 
     public function save_meta( array $data ) {
-        foreach ( self::META_KEYS as $key => $meta_key ) {
+        $keys = apply_filters( 'lp_link_meta_keys', self::META_KEYS );
+        foreach ( $keys as $key => $meta_key ) {
             if ( isset( $data[ $key ] ) ) {
                 update_post_meta( $this->id, $meta_key, sanitize_text_field( $data[ $key ] ) );
             }

@@ -54,7 +54,10 @@ class LP_Redirect {
         $query_string = isset( $_SERVER['QUERY_STRING'] ) ? $_SERVER['QUERY_STRING'] : '';
         $destination  = $link->get_final_destination_url( $query_string );
 
-        if ( ! $destination ) {
+        $destination  = apply_filters( 'lp_redirect_destination', $destination, $link );
+        $should_block = apply_filters( 'lp_redirect_should_block', false, $link );
+
+        if ( $should_block || ! $destination ) {
             return;
         }
 
@@ -66,12 +69,32 @@ class LP_Redirect {
             }
         }
 
+        do_action( 'lp_after_click', $link, $destination );
+
         header( 'X-Robots-Tag: noindex, nofollow', true );
         nocache_headers();
+
+        $js_redirect = get_post_meta( $link->get_id(), '_lp_js_redirect', true );
+        if ( $js_redirect === 'yes' ) {
+            self::render_js_redirect( $destination );
+            exit;
+        }
 
         $redirect_type = $link->get_redirect_type();
         wp_redirect( $destination, $redirect_type );
         exit;
+    }
+
+    private static function render_js_redirect( $destination ) {
+        ?><!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Redirecting...</title>
+<script>window.location.href=<?php echo wp_json_encode( $destination ); ?>;</script>
+</head><body>
+<noscript>Redirecting to <a href="<?php echo esc_url( $destination ); ?>"><?php echo esc_html( $destination ); ?></a>. JavaScript is required.</noscript>
+</body></html><?php
     }
 
     private static function get_request_path() {
