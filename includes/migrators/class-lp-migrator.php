@@ -21,7 +21,36 @@ abstract class LP_Migrator {
 
     abstract public static function get_source_count();
 
-    abstract public function run();
+    abstract public static function get_source_ids( $offset, $limit );
+
+    abstract public function migrate_one( $source_id );
+
+    public function run() {
+        $offset = 0;
+        $limit  = 50;
+        while ( true ) {
+            $ids = static::get_source_ids( $offset, $limit );
+            if ( empty( $ids ) ) {
+                break;
+            }
+            foreach ( $ids as $source_id ) {
+                $this->migrate_one( $source_id );
+            }
+            if ( count( $ids ) < $limit ) {
+                break;
+            }
+            $offset += $limit;
+        }
+        return $this->results;
+    }
+
+    public function set_id_map( array $map ) {
+        $this->id_map = $map;
+    }
+
+    public function set_results( array $results ) {
+        $this->results = array_merge( $this->results, $results );
+    }
 
     protected function create_link( array $data ) {
         $slug = isset( $data['slug'] ) ? sanitize_title( $data['slug'] ) : '';

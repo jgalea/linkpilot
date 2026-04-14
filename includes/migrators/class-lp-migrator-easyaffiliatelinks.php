@@ -6,11 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LP_Migrator_EasyAffiliateLinks extends LP_Migrator {
 
     public static function is_available() {
-        $count = wp_count_posts( 'easy_affiliate_link' );
-        if ( ! $count ) {
-            return false;
-        }
-        return ( $count->publish + $count->draft + $count->private ) > 0;
+        return self::get_source_count() > 0;
     }
 
     public static function get_source_name() {
@@ -26,47 +22,52 @@ class LP_Migrator_EasyAffiliateLinks extends LP_Migrator {
         );
     }
 
-    public function run() {
-        $posts = get_posts( array(
-            'post_type'      => 'easy_affiliate_link',
-            'post_status'    => array( 'publish', 'draft', 'private' ),
-            'posts_per_page' => -1,
-            'no_found_rows'  => true,
-        ) );
+    public static function get_source_ids( $offset, $limit ) {
+        global $wpdb;
+        return array_map( 'intval', $wpdb->get_col( $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts}
+             WHERE post_type = 'easy_affiliate_link'
+             AND post_status IN ('publish', 'draft', 'private')
+             ORDER BY ID ASC
+             LIMIT %d OFFSET %d",
+            (int) $limit,
+            (int) $offset
+        ) ) );
+    }
 
-        foreach ( $posts as $post ) {
-            $meta = get_post_meta( $post->ID );
-
-            $destination_url = isset( $meta['eafl_url'][0] ) ? $meta['eafl_url'][0] : '';
-            $redirect_type   = isset( $meta['eafl_redirect_type'][0] ) ? $meta['eafl_redirect_type'][0] : 'default';
-            $nofollow        = ( isset( $meta['eafl_nofollow'][0] ) && 'nofollow' === $meta['eafl_nofollow'][0] ) ? 'yes' : 'default';
-            $sponsored       = ( isset( $meta['eafl_sponsored'][0] ) && $meta['eafl_sponsored'][0] ) ? 'yes' : 'default';
-            $new_window      = ( isset( $meta['eafl_target'][0] ) && '_blank' === $meta['eafl_target'][0] ) ? 'yes' : 'default';
-            $css_classes     = isset( $meta['eafl_classes'][0] ) ? $meta['eafl_classes'][0] : '';
-
-            $link_id = $this->create_link( array(
-                'old_id'          => $post->ID,
-                'title'           => $post->post_title,
-                'slug'            => $post->post_name,
-                'destination_url' => $destination_url,
-                'redirect_type'   => $redirect_type,
-                'nofollow'        => $nofollow,
-                'sponsored'       => $sponsored,
-                'new_window'      => $new_window,
-                'css_classes'     => $css_classes,
-                'pass_query_str'  => 'default',
-                'rel_tags'        => '',
-            ) );
-
-            if ( ! $link_id ) {
-                continue;
-            }
-
-            $this->migrate_categories( $post->ID, $link_id );
-            $this->migrate_clicks( $post->ID, $link_id );
+    public function migrate_one( $source_id ) {
+        $post = get_post( $source_id );
+        if ( ! $post || $post->post_type !== 'easy_affiliate_link' ) {
+            $this->results['skipped']++;
+            return false;
         }
 
-        return $this->results;
+        $meta = get_post_meta( $post->ID );
+
+        $nofollow_val = ( isset( $meta['eafl_nofollow'][0] ) && 'nofollow' === $meta['eafl_nofollow'][0] ) ? 'yes' : 'default';
+
+        $link_id = $this->create_link( array(
+            'old_id'          => $post->ID,
+            'title'           => $post->post_title,
+            'slug'            => $post->post_name,
+            'destination_url' => isset( $meta['eafl_url'][0] ) ? $meta['eafl_url'][0] : '',
+            'redirect_type'   => isset( $meta['eafl_redirect_type'][0] ) ? $meta['eafl_redirect_type'][0] : 'default',
+            'nofollow'        => $nofollow_val,
+            'sponsored'       => ( isset( $meta['eafl_sponsored'][0] ) && $meta['eafl_sponsored'][0] ) ? 'yes' : 'default',
+            'new_window'      => ( isset( $meta['eafl_target'][0] ) && '_blank' === $meta['eafl_target'][0] ) ? 'yes' : 'default',
+            'css_classes'     => isset( $meta['eafl_classes'][0] ) ? $meta['eafl_classes'][0] : '',
+            'pass_query_str'  => 'default',
+            'rel_tags'        => '',
+        ) );
+
+        if ( ! $link_id ) {
+            return false;
+        }
+
+        $this->migrate_categories( $post->ID, $link_id );
+        $this->migrate_clicks( $post->ID, $link_id );
+
+        return $link_id;
     }
 
     private function migrate_categories( $old_post_id, $link_id ) {
@@ -83,10 +84,8 @@ class LP_Migrator_EasyAffiliateLinks extends LP_Migrator {
             if ( $term->parent && isset( $term_id_map[ $term->parent ] ) ) {
                 $parent_id = $term_id_map[ $term->parent ];
             }
-
             $new_term_id = $this->map_category( $term->name, $parent_id );
             $term_id_map[ $term->term_id ] = $new_term_id;
-
             if ( $new_term_id ) {
                 $new_term_ids[] = $new_term_id;
             }
@@ -99,7 +98,6 @@ class LP_Migrator_EasyAffiliateLinks extends LP_Migrator {
 
     private function migrate_clicks( $old_post_id, $link_id ) {
         global $wpdb;
-
         $clicks_table = $wpdb->prefix . 'eafl_clicks';
 
         if ( $wpdb->get_var( "SHOW TABLES LIKE '{$clicks_table}'" ) !== $clicks_table ) {

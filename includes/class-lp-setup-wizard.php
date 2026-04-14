@@ -6,13 +6,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LP_Setup_Wizard {
 
     public static function init() {
-        if ( get_option( 'lp_setup_complete' ) ) {
-            return;
-        }
+        // Wizard page is always available (re-runnable). Notice and redirect only run
+        // until first completion.
         add_action( 'admin_menu', array( __CLASS__, 'add_page' ) );
-        add_action( 'admin_init', array( __CLASS__, 'maybe_redirect' ) );
         add_action( 'admin_post_lp_wizard_save', array( __CLASS__, 'handle_save' ) );
-        add_action( 'admin_notices', array( __CLASS__, 'setup_notice' ) );
+
+        if ( ! get_option( 'lp_setup_complete' ) ) {
+            add_action( 'admin_init', array( __CLASS__, 'maybe_redirect' ) );
+            add_action( 'admin_notices', array( __CLASS__, 'setup_notice' ) );
+        }
     }
 
     public static function add_page() {
@@ -98,7 +100,10 @@ class LP_Setup_Wizard {
             update_option( 'lp_new_window', sanitize_text_field( $_POST['lp_new_window'] ) );
         }
 
-        if ( ! empty( $_POST['lp_migrate_source'] ) ) {
+        // If migration was requested AND not already handled by AJAX, run it synchronously.
+        // The wizard view sends lp_skip_server_migration=1 because it runs migration via AJAX
+        // before submitting the form. This branch is the fallback for browsers without JS.
+        if ( ! empty( $_POST['lp_migrate_source'] ) && empty( $_POST['lp_skip_server_migration'] ) ) {
             $migrators = array(
                 'thirstyaffiliates'  => 'LP_Migrator_ThirstyAffiliates',
                 'prettylinks'        => 'LP_Migrator_PrettyLinks',

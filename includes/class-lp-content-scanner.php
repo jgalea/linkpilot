@@ -14,32 +14,68 @@ class LP_Content_Scanner {
     }
 
     public function scan_and_replace() {
-        $results = array(
-            'posts_scanned' => 0,
-            'replacements'  => 0,
-        );
+        $results = array( 'posts_scanned' => 0, 'replacements' => 0 );
+        $offset  = 0;
+        $limit   = 100;
 
-        $posts = get_posts( array(
-            'post_type'      => array( 'post', 'page' ),
-            'post_status'    => 'any',
-            'posts_per_page' => -1,
-            'no_found_rows'  => true,
-        ) );
-
-        foreach ( $posts as $post ) {
-            $results['posts_scanned']++;
-
-            $new_content = $this->replace_in_content( $post->post_content, $results );
-
-            if ( $new_content !== $post->post_content ) {
-                wp_update_post( array(
-                    'ID'           => $post->ID,
-                    'post_content' => $new_content,
-                ) );
+        while ( true ) {
+            $ids = self::get_post_ids( $offset, $limit );
+            if ( empty( $ids ) ) {
+                break;
             }
+            foreach ( $ids as $post_id ) {
+                $reps = $this->scan_one_post( $post_id );
+                $results['posts_scanned']++;
+                $results['replacements'] += $reps;
+            }
+            if ( count( $ids ) < $limit ) {
+                break;
+            }
+            $offset += $limit;
         }
 
         return $results;
+    }
+
+    public static function get_total_posts() {
+        global $wpdb;
+        return (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$wpdb->posts}
+             WHERE post_type IN ('post', 'page')
+             AND post_status NOT IN ('trash', 'auto-draft', 'inherit')"
+        );
+    }
+
+    public static function get_post_ids( $offset, $limit ) {
+        global $wpdb;
+        return array_map( 'intval', $wpdb->get_col( $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts}
+             WHERE post_type IN ('post', 'page')
+             AND post_status NOT IN ('trash', 'auto-draft', 'inherit')
+             ORDER BY ID ASC
+             LIMIT %d OFFSET %d",
+            (int) $limit,
+            (int) $offset
+        ) ) );
+    }
+
+    public function scan_one_post( $post_id ) {
+        $post = get_post( $post_id );
+        if ( ! $post ) {
+            return 0;
+        }
+
+        $results     = array( 'replacements' => 0 );
+        $new_content = $this->replace_in_content( $post->post_content, $results );
+
+        if ( $new_content !== $post->post_content ) {
+            wp_update_post( array(
+                'ID'           => $post->ID,
+                'post_content' => $new_content,
+            ) );
+        }
+
+        return $results['replacements'];
     }
 
     private function replace_in_content( $content, &$results ) {

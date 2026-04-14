@@ -10,15 +10,25 @@ class LP_Link_Health {
     const META_CHECKED_AT = '_lp_health_checked_at';
     const META_ERROR      = '_lp_health_error';
     const CRON_HOOK       = 'lp_health_check_cron';
-    const BATCH_SIZE      = 20;
+    const BATCH_SIZE      = 5;
+    const STALE_DAYS      = 7;
 
     public static function init() {
-        add_action( self::CRON_HOOK, array( __CLASS__, 'run_batch_check' ) );
+        add_action( self::CRON_HOOK, array( __CLASS__, 'run_cron_tick' ) );
+        add_action( 'init', array( __CLASS__, 'schedule' ) );
     }
 
     public static function schedule() {
-        if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
-            wp_schedule_event( time(), 'twicedaily', self::CRON_HOOK );
+        $next = wp_next_scheduled( self::CRON_HOOK );
+        if ( $next ) {
+            $event = wp_get_scheduled_event( self::CRON_HOOK );
+            if ( $event && $event->schedule !== 'hourly' ) {
+                wp_unschedule_event( $next, self::CRON_HOOK );
+                $next = false;
+            }
+        }
+        if ( ! $next ) {
+            wp_schedule_event( time(), 'hourly', self::CRON_HOOK );
         }
     }
 
@@ -29,12 +39,21 @@ class LP_Link_Health {
         }
     }
 
-    public static function run_batch_check() {
+    public static function run_cron_tick() {
+        $ids = self::get_stale_ids( self::BATCH_SIZE );
+        foreach ( $ids as $i => $post_id ) {
+            self::check_link( (int) $post_id );
+            if ( $i < count( $ids ) - 1 ) {
+                usleep( 500000 ); // 0.5s pacing
+            }
+        }
+    }
+
+    public static function get_stale_ids( $limit ) {
         global $wpdb;
+        $cutoff = gmdate( 'Y-m-d H:i:s', time() - ( self::STALE_DAYS * DAY_IN_SECONDS ) );
 
-        $cutoff = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
-
-        $post_ids = $wpdb->get_col( $wpdb->prepare(
+        return $wpdb->get_col( $wpdb->prepare(
             "SELECT p.ID
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm
@@ -46,12 +65,18 @@ class LP_Link_Health {
             LIMIT %d",
             self::META_CHECKED_AT,
             $cutoff,
-            self::BATCH_SIZE
+            (int) $limit
         ) );
+    }
 
-        foreach ( $post_ids as $post_id ) {
-            self::check_link( (int) $post_id );
-        }
+    public static function get_all_ids() {
+        return get_posts( array(
+            'post_type'      => 'lp_link',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        ) );
     }
 
     public static function check_link( $post_id ) {
@@ -63,7 +88,7 @@ class LP_Link_Health {
             update_post_meta( $post_id, self::META_HTTP_CODE, '' );
             update_post_meta( $post_id, self::META_CHECKED_AT, gmdate( 'Y-m-d H:i:s' ) );
             update_post_meta( $post_id, self::META_ERROR, '' );
-            return;
+            return array( 'status' => 'no_url', 'code' => '' );
         }
 
         $response = wp_remote_head( $url, array(
@@ -77,7 +102,7 @@ class LP_Link_Health {
             update_post_meta( $post_id, self::META_HTTP_CODE, '' );
             update_post_meta( $post_id, self::META_CHECKED_AT, gmdate( 'Y-m-d H:i:s' ) );
             update_post_meta( $post_id, self::META_ERROR, $response->get_error_message() );
-            return;
+            return array( 'status' => 'error', 'code' => '', 'error' => $response->get_error_message() );
         }
 
         $code   = (int) wp_remote_retrieve_response_code( $response );
@@ -87,6 +112,8 @@ class LP_Link_Health {
         update_post_meta( $post_id, self::META_HTTP_CODE, $code );
         update_post_meta( $post_id, self::META_CHECKED_AT, gmdate( 'Y-m-d H:i:s' ) );
         update_post_meta( $post_id, self::META_ERROR, '' );
+
+        return array( 'status' => $status, 'code' => $code );
     }
 
     private static function code_to_status( $code ) {
@@ -100,22 +127,6 @@ class LP_Link_Health {
             return 'server_error';
         }
         return 'unknown';
-    }
-
-    public static function check_all_now() {
-        $post_ids = get_posts( array(
-            'post_type'      => 'lp_link',
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-        ) );
-
-        foreach ( $post_ids as $post_id ) {
-            self::check_link( $post_id );
-        }
-
-        return count( $post_ids );
     }
 
     public static function get_summary() {

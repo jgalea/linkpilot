@@ -6,11 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LP_Migrator_ThirstyAffiliates extends LP_Migrator {
 
     public static function is_available() {
-        $count = wp_count_posts( 'thirstylink' );
-        if ( ! $count ) {
-            return false;
-        }
-        return ( $count->publish + $count->draft + $count->private ) > 0;
+        return self::get_source_count() > 0;
     }
 
     public static function get_source_name() {
@@ -26,50 +22,50 @@ class LP_Migrator_ThirstyAffiliates extends LP_Migrator {
         );
     }
 
-    public function run() {
+    public static function get_source_ids( $offset, $limit ) {
         global $wpdb;
+        return array_map( 'intval', $wpdb->get_col( $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts}
+             WHERE post_type = 'thirstylink'
+             AND post_status IN ('publish', 'draft', 'private')
+             ORDER BY ID ASC
+             LIMIT %d OFFSET %d",
+            (int) $limit,
+            (int) $offset
+        ) ) );
+    }
 
-        $posts = get_posts( array(
-            'post_type'      => 'thirstylink',
-            'post_status'    => array( 'publish', 'draft', 'private' ),
-            'posts_per_page' => -1,
-            'no_found_rows'  => true,
-        ) );
-
-        foreach ( $posts as $post ) {
-            $meta = get_post_meta( $post->ID );
-
-            $destination_url  = isset( $meta['_ta_destination_url'][0] ) ? $meta['_ta_destination_url'][0] : '';
-            $redirect_type    = isset( $meta['_ta_redirect_type'][0] ) ? $meta['_ta_redirect_type'][0] : 'default';
-            $nofollow         = isset( $meta['_ta_no_follow'][0] ) ? $this->normalize_bool( $meta['_ta_no_follow'][0] ) : 'default';
-            $new_window       = isset( $meta['_ta_new_window'][0] ) ? $this->normalize_bool( $meta['_ta_new_window'][0] ) : 'default';
-            $pass_query_str   = isset( $meta['_ta_pass_query_str'][0] ) ? $this->normalize_bool( $meta['_ta_pass_query_str'][0] ) : 'default';
-            $css_classes      = isset( $meta['_ta_css_classes'][0] ) ? $meta['_ta_css_classes'][0] : '';
-            $rel_tags         = isset( $meta['_ta_rel_tags'][0] ) ? $meta['_ta_rel_tags'][0] : '';
-
-            $link_id = $this->create_link( array(
-                'old_id'          => $post->ID,
-                'title'           => $post->post_title,
-                'slug'            => $post->post_name,
-                'destination_url' => $destination_url,
-                'redirect_type'   => $redirect_type,
-                'nofollow'        => $nofollow,
-                'sponsored'       => 'default',
-                'new_window'      => $new_window,
-                'css_classes'     => $css_classes,
-                'pass_query_str'  => $pass_query_str,
-                'rel_tags'        => $rel_tags,
-            ) );
-
-            if ( ! $link_id ) {
-                continue;
-            }
-
-            $this->migrate_categories( $post->ID, $link_id );
-            $this->migrate_clicks( $post->ID, $link_id );
+    public function migrate_one( $source_id ) {
+        $post = get_post( $source_id );
+        if ( ! $post || $post->post_type !== 'thirstylink' ) {
+            $this->results['skipped']++;
+            return false;
         }
 
-        return $this->results;
+        $meta = get_post_meta( $post->ID );
+
+        $link_id = $this->create_link( array(
+            'old_id'          => $post->ID,
+            'title'           => $post->post_title,
+            'slug'            => $post->post_name,
+            'destination_url' => isset( $meta['_ta_destination_url'][0] ) ? $meta['_ta_destination_url'][0] : '',
+            'redirect_type'   => isset( $meta['_ta_redirect_type'][0] ) ? $meta['_ta_redirect_type'][0] : 'default',
+            'nofollow'        => isset( $meta['_ta_no_follow'][0] ) ? $this->normalize_bool( $meta['_ta_no_follow'][0] ) : 'default',
+            'sponsored'       => 'default',
+            'new_window'      => isset( $meta['_ta_new_window'][0] ) ? $this->normalize_bool( $meta['_ta_new_window'][0] ) : 'default',
+            'css_classes'     => isset( $meta['_ta_css_classes'][0] ) ? $meta['_ta_css_classes'][0] : '',
+            'pass_query_str'  => isset( $meta['_ta_pass_query_str'][0] ) ? $this->normalize_bool( $meta['_ta_pass_query_str'][0] ) : 'default',
+            'rel_tags'        => isset( $meta['_ta_rel_tags'][0] ) ? $meta['_ta_rel_tags'][0] : '',
+        ) );
+
+        if ( ! $link_id ) {
+            return false;
+        }
+
+        $this->migrate_categories( $post->ID, $link_id );
+        $this->migrate_clicks( $post->ID, $link_id );
+
+        return $link_id;
     }
 
     private function migrate_categories( $old_post_id, $link_id ) {
@@ -78,7 +74,7 @@ class LP_Migrator_ThirstyAffiliates extends LP_Migrator {
             return;
         }
 
-        $term_id_map = array();
+        $term_id_map  = array();
         $new_term_ids = array();
 
         foreach ( $terms as $term ) {

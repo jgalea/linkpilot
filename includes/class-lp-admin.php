@@ -13,7 +13,6 @@ class LP_Admin {
         add_action( 'manage_lp_link_posts_custom_column', array( __CLASS__, 'column_content' ), 10, 2 );
         add_action( 'admin_menu', array( __CLASS__, 'add_dashboard_page' ) );
         add_action( 'admin_menu', array( __CLASS__, 'add_migration_page' ) );
-        add_action( 'admin_post_lp_check_health_now', array( __CLASS__, 'handle_health_check' ) );
     }
 
     public static function add_dashboard_page() {
@@ -189,24 +188,22 @@ class LP_Admin {
         include LP_PLUGIN_DIR . 'views/admin-migration.php';
     }
 
-    public static function handle_health_check() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( 'Unauthorized' );
-        }
-        check_admin_referer( 'lp_check_health_now' );
-
-        $checked = LP_Link_Health::check_all_now();
-
-        wp_redirect( admin_url( 'edit.php?post_type=lp_link&page=lp-dashboard&lp_health_checked=' . $checked ) );
-        exit;
-    }
-
     public static function enqueue_admin_assets( $hook ) {
         $screen = get_current_screen();
-        if ( ! $screen || $screen->post_type !== 'lp_link' ) {
+        $is_lp_screen = ( $screen && $screen->post_type === 'lp_link' );
+        $is_wizard    = ( $screen && $screen->id === 'admin_page_lp-setup' );
+
+        if ( ! $is_lp_screen && ! $is_wizard ) {
             return;
         }
+
         wp_enqueue_style( 'lp-admin', LP_PLUGIN_URL . 'assets/css/admin.css', array(), LP_VERSION );
         wp_enqueue_script( 'lp-admin', LP_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery' ), LP_VERSION, true );
+
+        wp_enqueue_script( 'lp-job-runner', LP_PLUGIN_URL . 'assets/js/job-runner.js', array(), LP_VERSION, true );
+        wp_localize_script( 'lp-job-runner', 'lpJobRunner', array(
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => LP_Job_Runner::get_nonce(),
+        ) );
     }
 }

@@ -81,11 +81,34 @@ $top_links = $wpdb->get_results( $wpdb->prepare(
             <p class="lp-stat-label"><?php esc_html_e( 'Unchecked', 'linkpilot' ); ?></p>
         </div>
     </div>
-    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-bottom: 20px;">
-        <?php wp_nonce_field( 'lp_check_health_now' ); ?>
-        <input type="hidden" name="action" value="lp_check_health_now" />
-        <?php submit_button( __( 'Check All Links Now', 'linkpilot' ), 'secondary', 'submit', false ); ?>
-    </form>
+    <p style="margin-bottom: 20px;">
+        <button type="button" class="button button-secondary" id="lp-check-health-now">
+            <?php esc_html_e( 'Check All Links Now', 'linkpilot' ); ?>
+        </button>
+        <span class="description" style="margin-left: 10px;"><?php esc_html_e( 'Background checks run hourly and stagger across the week.', 'linkpilot' ); ?></span>
+    </p>
+    <div id="lp-health-progress"></div>
+
+    <script>
+    (function () {
+        var btn = document.getElementById('lp-check-health-now');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            btn.disabled = true;
+            btn.textContent = '<?php echo esc_js( __( 'Checking…', 'linkpilot' ) ); ?>';
+            LPJobRunner.start({
+                action: 'lp_job_health',
+                containerId: 'lp-health-progress',
+                label: '<?php echo esc_js( __( 'Checking link health', 'linkpilot' ) ); ?>',
+                onDone: function () {
+                    btn.textContent = '<?php echo esc_js( __( 'Reload to see updated counts', 'linkpilot' ) ); ?>';
+                    btn.disabled = false;
+                    btn.addEventListener('click', function () { location.reload(); }, { once: true });
+                }
+            });
+        });
+    })();
+    </script>
 
     <?php if ( $top_links ) : ?>
     <h2><?php esc_html_e( 'Top Links (Last 30 Days)', 'linkpilot' ); ?></h2>
