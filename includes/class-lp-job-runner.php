@@ -125,9 +125,9 @@ class LP_Job_Runner {
         $state = get_transient( self::state_key( $key ) );
         if ( ! is_array( $state ) ) {
             global $wpdb;
-            $total = (int) $wpdb->get_var(
-                "SELECT COUNT(*) FROM " . LP_Scanner_DB::get_table_name()
-            );
+            $scanner_table = LP_Scanner_DB::get_table_name();
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from class constant.
+            $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$scanner_table}" );
             $state = array(
                 'offset'  => 0,
                 'total'   => $total,

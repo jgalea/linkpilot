@@ -59,7 +59,7 @@ class LP_Scanner_Notifier {
         $recipient = self::get_recipient();
         if ( ! $recipient ) return;
 
-        $site  = parse_url( home_url(), PHP_URL_HOST );
+        $site  = wp_parse_url( home_url(), PHP_URL_HOST );
         $subj  = sprintf( '[%s] LinkPilot: %d broken link%s this week', $site, count( $rows ), count( $rows ) === 1 ? '' : 's' );
         $admin = admin_url( 'admin.php?page=lp-scanner' );
 
@@ -98,7 +98,7 @@ class LP_Scanner_Notifier {
         $recipient = self::get_recipient();
         if ( ! $recipient ) return;
 
-        $site = parse_url( home_url(), PHP_URL_HOST );
+        $site = wp_parse_url( home_url(), PHP_URL_HOST );
         $subj = sprintf( '[%s] LinkPilot: link broken — %s', $site, $url );
         $body = "A previously healthy URL just started returning errors.\n\n"
               . "URL: {$url}\n"

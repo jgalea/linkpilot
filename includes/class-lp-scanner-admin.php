@@ -27,10 +27,11 @@ class LP_Scanner_Admin {
         header( 'Content-Type: text/csv; charset=utf-8' );
         header( 'Content-Disposition: attachment; filename="linkpilot-broken-links-' . gmdate( 'Y-m-d' ) . '.csv"' );
 
-        $out = fopen( 'php://output', 'w' );
-        fputcsv( $out, array( 'URL', 'Status', 'HTTP Code', 'Ref Count', 'Error', 'Last Checked', 'Final URL', 'Redirects' ) );
+        // CSV output is raw binary data; individual fields are escaped in csv_row().
+        // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo self::csv_row( array( 'URL', 'Status', 'HTTP Code', 'Ref Count', 'Error', 'Last Checked', 'Final URL', 'Redirects' ) );
         foreach ( $rows as $r ) {
-            fputcsv( $out, array(
+            echo self::csv_row( array(
                 $r->url,
                 $r->status,
                 $r->http_code,
@@ -41,8 +42,21 @@ class LP_Scanner_Admin {
                 $r->redirect_count ?? 0,
             ) );
         }
-        fclose( $out );
+        // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
         exit;
+    }
+
+    /** RFC 4180 CSV row encoder (no fopen needed). */
+    private static function csv_row( array $fields ) {
+        $out = array();
+        foreach ( $fields as $f ) {
+            $s = (string) $f;
+            if ( strpbrk( $s, ",\"\r\n" ) !== false ) {
+                $s = '"' . str_replace( '"', '""', $s ) . '"';
+            }
+            $out[] = $s;
+        }
+        return implode( ',', $out ) . "\r\n";
     }
 
     public static function filtered_rows( $filter_status = '', $filter_host = '', $search = '', $page = 1, $per_page = 50 ) {
@@ -74,12 +88,12 @@ class LP_Scanner_Admin {
         $where_sql = 'WHERE ' . implode( ' AND ', $where );
         $offset    = max( 0, ( $page - 1 ) * $per_page );
 
-        $total_sql = "SELECT COUNT(*) FROM {$table} {$where_sql}";
-        $total     = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, ...$params ) );
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $where_sql is built from hard-coded fragments and $table from class constant; all user input is bound via prepare placeholders below.
+        $total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} {$where_sql}", ...$params ) );
 
-        $rows_sql    = "SELECT * FROM {$table} {$where_sql} ORDER BY ref_count DESC, url ASC LIMIT %d OFFSET %d";
         $rows_params = array_merge( $params, array( $per_page, $offset ) );
-        $rows        = $wpdb->get_results( $wpdb->prepare( $rows_sql, ...$rows_params ) );
+        $rows        = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} {$where_sql} ORDER BY ref_count DESC, url ASC LIMIT %d OFFSET %d", ...$rows_params ) );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         return array( 'rows' => $rows, 'total' => $total );
     }

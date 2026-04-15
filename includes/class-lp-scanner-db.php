@@ -107,20 +107,18 @@ class LP_Scanner_DB {
 
     public static function get_status( $url ) {
         global $wpdb;
-        return $wpdb->get_row( $wpdb->prepare(
-            "SELECT * FROM " . self::get_table_name() . " WHERE url_hash = %s",
-            self::url_hash( $url )
-        ) );
+        $table = self::get_table_name();
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from class constant.
+        return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE url_hash = %s", self::url_hash( $url ) ) );
     }
 
     public static function get_stale_urls( $limit, $stale_days = 7 ) {
         global $wpdb;
+        $table  = self::get_table_name();
         $cutoff = gmdate( 'Y-m-d H:i:s', time() - ( (int) $stale_days * DAY_IN_SECONDS ) );
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from class constant.
         return $wpdb->get_results( $wpdb->prepare(
-            "SELECT url FROM " . self::get_table_name() . "
-             WHERE checked_at IS NULL OR checked_at < %s
-             ORDER BY checked_at ASC
-             LIMIT %d",
+            "SELECT url FROM {$table} WHERE checked_at IS NULL OR checked_at < %s ORDER BY checked_at ASC LIMIT %d",
             $cutoff,
             (int) $limit
         ) );
@@ -128,9 +126,9 @@ class LP_Scanner_DB {
 
     public static function get_summary() {
         global $wpdb;
-        $rows = $wpdb->get_results(
-            "SELECT status, COUNT(*) AS cnt FROM " . self::get_table_name() . " GROUP BY status"
-        );
+        $table = self::get_table_name();
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from constant.
+        $rows = $wpdb->get_results( "SELECT status, COUNT(*) AS cnt FROM {$table} GROUP BY status" );
         $summary = array(
             'healthy'      => 0,
             'broken'       => 0,
@@ -149,19 +147,19 @@ class LP_Scanner_DB {
 
     public static function get_broken() {
         global $wpdb;
-        return $wpdb->get_results(
-            "SELECT * FROM " . self::get_table_name() . "
-             WHERE status IN ('broken', 'error', 'server_error')
-             ORDER BY ref_count DESC, url ASC"
-        );
+        $table = self::get_table_name();
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from constant, no user input.
+        return $wpdb->get_results( "SELECT * FROM {$table} WHERE status IN ('broken', 'error', 'server_error') ORDER BY ref_count DESC, url ASC" );
     }
 
     public static function refresh_ref_counts() {
         global $wpdb;
         $table = self::get_table_name();
 
-        $post_meta_query = "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_lp_scanner_urls'";
-        $rows = $wpdb->get_col( $post_meta_query );
+        $rows = $wpdb->get_col( $wpdb->prepare(
+            "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s",
+            '_lp_scanner_urls'
+        ) );
 
         $counts = array();
         foreach ( $rows as $serialized ) {
@@ -183,6 +181,8 @@ class LP_Scanner_DB {
 
     public static function drop_table() {
         global $wpdb;
-        $wpdb->query( "DROP TABLE IF EXISTS " . self::get_table_name() );
+        $table = self::get_table_name();
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from constant.
+        $wpdb->query( "DROP TABLE IF EXISTS {$table}" );
     }
 }
