@@ -11,8 +11,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class LP_Scanner_Checker {
 
-    const USER_AGENT  = 'LinkPilot Scanner (WordPress)';
-    const TIMEOUT     = 15;
+    // Browser-ish UA. Many destinations (Cloudflare, Akamai, Tripadvisor, Statista, etc.)
+    // 403/429 anything that looks like a bot. Identifying as a real browser
+    // dramatically reduces false positives.
+    const USER_AGENT  = 'Mozilla/5.0 (compatible; LinkPilotScanner/1.0; +https://linkpilothq.com/scanner)';
+    const TIMEOUT     = 20;
 
     public static function check_batch( array $urls ) {
         if ( empty( $urls ) ) {
@@ -89,8 +92,8 @@ class LP_Scanner_Checker {
 
             $code = (int) $response->status_code;
 
-            // Many servers reject HEAD with 405/403/400 — retry with GET for those.
-            if ( in_array( $code, array( 400, 403, 405, 501 ), true ) ) {
+            // Many servers reject HEAD with these codes — retry with GET to confirm.
+            if ( in_array( $code, array( 400, 403, 405, 429, 501 ), true ) ) {
                 $fallback[] = $url;
                 continue;
             }
@@ -155,6 +158,12 @@ class LP_Scanner_Checker {
         }
         if ( $code >= 300 && $code < 400 ) {
             return $base + array( 'status' => 'redirect', 'code' => $code, 'error' => '' );
+        }
+        // Anti-bot / refused: 401 auth required, 402/403/429 typically Cloudflare or
+        // similar refusing automated requests. The link is fine for human visitors;
+        // we just can't verify it. Tracked separately from real broken (404/410).
+        if ( in_array( $code, array( 401, 402, 403, 429, 451, 460, 511, 520, 521, 522, 523, 524, 525, 526, 527, 999 ), true ) ) {
+            return $base + array( 'status' => 'blocked', 'code' => $code, 'error' => 'Destination refused automated check' );
         }
         if ( $code >= 400 && $code < 500 ) {
             return $base + array( 'status' => 'broken', 'code' => $code, 'error' => '' );

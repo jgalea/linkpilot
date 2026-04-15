@@ -143,6 +143,10 @@ class LP_Scanner_Admin {
                     <p class="lp-stat-label"><?php esc_html_e( 'Server Error', 'linkpilot' ); ?></p>
                 </div>
                 <div class="lp-stat-card">
+                    <div class="lp-stat-value" style="color:#787c82;"><?php echo esc_html( $summary['blocked'] ); ?></div>
+                    <p class="lp-stat-label" title="<?php esc_attr_e( 'Sites that refused automated checks (e.g. Cloudflare 403). Visible to humans, not necessarily broken.', 'linkpilot' ); ?>"><?php esc_html_e( 'Blocked (refused)', 'linkpilot' ); ?></p>
+                </div>
+                <div class="lp-stat-card">
                     <div class="lp-stat-value"><?php echo esc_html( $summary['unchecked'] ); ?></div>
                     <p class="lp-stat-label"><?php esc_html_e( 'Unchecked', 'linkpilot' ); ?></p>
                 </div>
@@ -176,6 +180,7 @@ class LP_Scanner_Admin {
                     <option value="broken"     <?php selected( $filter_status, 'broken' ); ?>><?php esc_html_e( 'Broken (4xx)', 'linkpilot' ); ?></option>
                     <option value="server_error" <?php selected( $filter_status, 'server_error' ); ?>><?php esc_html_e( 'Server error (5xx)', 'linkpilot' ); ?></option>
                     <option value="error"      <?php selected( $filter_status, 'error' ); ?>><?php esc_html_e( 'Unreachable', 'linkpilot' ); ?></option>
+                    <option value="blocked"    <?php selected( $filter_status, 'blocked' ); ?>><?php esc_html_e( 'Blocked (refused automated check)', 'linkpilot' ); ?></option>
                     <option value="redirect"   <?php selected( $filter_status, 'redirect' ); ?>><?php esc_html_e( 'Redirects', 'linkpilot' ); ?></option>
                     <option value="healthy"    <?php selected( $filter_status, 'healthy' ); ?>><?php esc_html_e( 'Healthy', 'linkpilot' ); ?></option>
                     <option value="dismissed"  <?php selected( $filter_status, 'dismissed' ); ?>><?php esc_html_e( 'Dismissed', 'linkpilot' ); ?></option>

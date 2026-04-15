@@ -134,8 +134,10 @@ class LP_Scanner_DB {
             'broken'       => 0,
             'server_error' => 0,
             'error'        => 0,
+            'blocked'      => 0,
             'unchecked'    => 0,
             'redirect'     => 0,
+            'dismissed'    => 0,
         );
         foreach ( $rows as $r ) {
             if ( array_key_exists( $r->status, $summary ) ) {
