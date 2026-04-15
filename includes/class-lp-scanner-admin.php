@@ -134,7 +134,11 @@ class LP_Scanner_Admin {
 
             <p style="margin:16px 0;">
                 <button type="button" class="button button-primary" id="lp-canonicalize-all">
-                    <?php printf( esc_html__( 'Canonicalize all %d redirects', 'linkpilot' ), count( $all_redirects ) ); ?>
+                    <?php echo esc_html( sprintf(
+                        /* translators: %d: number of redirects */
+                        __( 'Canonicalize all %d redirects', 'linkpilot' ),
+                        count( $all_redirects )
+                    ) ); ?>
                 </button>
                 <span class="description" style="margin-left:12px;">
                     <?php esc_html_e( 'Processes one URL per second to avoid DB spikes. You can leave the page running.', 'linkpilot' ); ?>
