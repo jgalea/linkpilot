@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class LP_Scanner_DB {
 
-    const VERSION = '1.0';
+    const VERSION = '1.1';
 
     public static function get_table_name() {
         global $wpdb;
@@ -32,6 +32,8 @@ class LP_Scanner_DB {
             error TEXT,
             ref_count INT UNSIGNED NOT NULL DEFAULT 0,
             last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            final_url VARCHAR(2048) DEFAULT NULL,
+            redirect_count SMALLINT UNSIGNED DEFAULT 0,
             PRIMARY KEY (url_hash),
             KEY idx_status (status),
             KEY idx_checked (checked_at)
@@ -76,18 +78,31 @@ class LP_Scanner_DB {
         return $hash;
     }
 
-    public static function set_status( $url, $status, $http_code = 0, $error = '' ) {
+    public static function set_status( $url, $status, $http_code = 0, $error = '', $final_url = null, $redirect_count = 0 ) {
         global $wpdb;
-        return $wpdb->update(
-            self::get_table_name(),
-            array(
-                'status'     => $status,
-                'http_code'  => (int) $http_code,
-                'error'      => $error,
-                'checked_at' => current_time( 'mysql', true ),
-            ),
-            array( 'url_hash' => self::url_hash( $url ) )
+        $table = self::get_table_name();
+        $hash  = self::url_hash( $url );
+
+        $old_status = $wpdb->get_var( $wpdb->prepare(
+            "SELECT status FROM {$table} WHERE url_hash = %s", $hash
+        ) );
+
+        $data = array(
+            'status'         => $status,
+            'http_code'      => (int) $http_code,
+            'error'          => $error,
+            'checked_at'     => current_time( 'mysql', true ),
+            'final_url'      => $final_url ? substr( $final_url, 0, 2048 ) : null,
+            'redirect_count' => (int) $redirect_count,
         );
+
+        $result = $wpdb->update( $table, $data, array( 'url_hash' => $hash ) );
+
+        if ( $old_status !== $status && class_exists( 'LP_Scanner_Notifier' ) ) {
+            LP_Scanner_Notifier::maybe_send_transition( $url, $old_status, $status );
+        }
+
+        return $result;
     }
 
     public static function get_status( $url ) {

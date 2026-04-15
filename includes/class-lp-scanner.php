@@ -57,29 +57,45 @@ class LP_Scanner {
             $urls    = wp_list_pluck( $stale, 'url' );
             $results = LP_Scanner_Checker::check_batch( $urls );
             foreach ( $results as $url => $r ) {
-                LP_Scanner_DB::set_status( $url, $r['status'], $r['code'], $r['error'] );
+                LP_Scanner_DB::set_status( $url, $r['status'], $r['code'], $r['error'], $r['final_url'] ?? null, $r['redirect_count'] ?? 0 );
             }
         }
+    }
+
+    public static function get_post_types() {
+        $raw = get_option( 'lp_scanner_post_types', 'post,page' );
+        $out = array();
+        foreach ( explode( ',', $raw ) as $t ) {
+            $t = trim( $t );
+            if ( $t !== '' && post_type_exists( $t ) ) $out[] = $t;
+        }
+        return $out ?: array( 'post', 'page' );
     }
 
     public static function get_stale_post_ids( $limit ) {
         global $wpdb;
         $cutoff = gmdate( 'Y-m-d H:i:s', time() - ( self::POST_STALE_DAYS * DAY_IN_SECONDS ) );
+        $types  = self::get_post_types();
+        $placeholders = implode( ',', array_fill( 0, count( $types ), '%s' ) );
+
+        $params = array_merge(
+            array( self::META_POST_CHECKED ),
+            $types,
+            array( $cutoff, (int) $limit )
+        );
 
         return $wpdb->get_col( $wpdb->prepare(
             "SELECT p.ID FROM {$wpdb->posts} p
              LEFT JOIN {$wpdb->postmeta} pm
                 ON pm.post_id = p.ID AND pm.meta_key = %s
-             WHERE p.post_type IN ('post', 'page')
+             WHERE p.post_type IN ({$placeholders})
              AND p.post_status = 'publish'
              AND ( pm.meta_value IS NULL
                    OR pm.meta_value < %s
                    OR pm.meta_value < p.post_modified_gmt )
              ORDER BY p.post_modified_gmt DESC
              LIMIT %d",
-            self::META_POST_CHECKED,
-            $cutoff,
-            (int) $limit
+            ...$params
         ) );
     }
 
@@ -92,13 +108,19 @@ class LP_Scanner {
             return 0;
         }
 
-        $urls = LP_Scanner_Extractor::extract( $post->post_content );
+        $urls = array_fill_keys( LP_Scanner_Extractor::extract( $post->post_content ), true );
 
-        // Remove any previously recorded URLs for this post that no longer exist (decrements ref counts implicitly via refresh).
+        // Optional containers (comments, post meta, ACF fields) — each is
+        // enabled independently via lp_scanner_containers setting.
+        foreach ( LP_Scanner_Containers::extract_from_comments( $post_id ) as $u ) { $urls[ $u ] = true; }
+        foreach ( LP_Scanner_Containers::extract_from_meta( $post_id ) as $u )     { $urls[ $u ] = true; }
+        foreach ( LP_Scanner_Containers::extract_from_acf( $post_id ) as $u )      { $urls[ $u ] = true; }
+
+        $urls = array_keys( $urls );
+
         update_post_meta( $post_id, self::META_POST_URLS, $urls );
         update_post_meta( $post_id, self::META_POST_CHECKED, current_time( 'mysql', true ) );
 
-        // Ensure each URL has a row in the status table.
         foreach ( $urls as $url ) {
             LP_Scanner_DB::upsert( $url );
         }

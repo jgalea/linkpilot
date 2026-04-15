@@ -26,6 +26,7 @@ final class LinkPilot {
         LP_Link::init();
         LP_Link_Health::init();
         LP_Scanner::init();
+        LP_Scanner_Notifier::init();
 
         if ( is_admin() ) {
             LP_Admin::init();

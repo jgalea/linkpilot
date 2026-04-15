@@ -80,6 +80,10 @@ class LP_Scanner_Extractor {
         return array_keys( $urls );
     }
 
+    public static function normalize_public( $href ) {
+        return self::normalize( $href );
+    }
+
     private static function normalize( $href ) {
         $href = trim( html_entity_decode( $href ) );
 
@@ -124,7 +128,35 @@ class LP_Scanner_Extractor {
             }
         }
 
+        // Skip URLs matching user-configured exclusion patterns.
+        foreach ( self::get_url_patterns() as $pattern ) {
+            if ( $pattern === '' ) continue;
+            if ( $pattern[0] === '/' && substr( $pattern, -1 ) === '/' ) {
+                if ( @preg_match( $pattern, $href ) === 1 ) {
+                    return '';
+                }
+            } elseif ( stripos( $href, $pattern ) !== false ) {
+                return '';
+            }
+        }
+
         return $href;
+    }
+
+    public static function get_url_patterns() {
+        static $cached = null;
+        if ( $cached !== null ) return $cached;
+
+        $raw = get_option( 'lp_scanner_url_exclusion', '' );
+        $out = array();
+        if ( $raw ) {
+            foreach ( preg_split( '/\R/', $raw ) as $line ) {
+                $line = trim( $line );
+                if ( $line !== '' ) $out[] = $line;
+            }
+        }
+        $cached = $out;
+        return $cached;
     }
 
     public static function get_allowlist() {

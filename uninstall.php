@@ -25,6 +25,7 @@ if ( $terms ) {
 // Unschedule all cron hooks
 wp_clear_scheduled_hook( 'lp_health_check_cron' );
 wp_clear_scheduled_hook( 'lp_scanner_cron_tick' );
+wp_clear_scheduled_hook( 'lp_scanner_digest_cron' );
 
 // Drop custom tables
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}lp_clicks" );

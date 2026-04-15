@@ -15,6 +15,73 @@ class LP_Scanner_Admin {
         add_filter( 'manage_pages_columns', array( __CLASS__, 'add_broken_column' ) );
         add_action( 'manage_posts_custom_column', array( __CLASS__, 'render_broken_column' ), 10, 2 );
         add_action( 'manage_pages_custom_column', array( __CLASS__, 'render_broken_column' ), 10, 2 );
+        add_action( 'admin_post_lp_scanner_export_csv', array( __CLASS__, 'handle_csv_export' ) );
+    }
+
+    public static function handle_csv_export() {
+        if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Unauthorized' );
+        check_admin_referer( 'lp_scanner_export_csv' );
+
+        $rows = LP_Scanner_DB::get_broken();
+
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename="linkpilot-broken-links-' . gmdate( 'Y-m-d' ) . '.csv"' );
+
+        $out = fopen( 'php://output', 'w' );
+        fputcsv( $out, array( 'URL', 'Status', 'HTTP Code', 'Ref Count', 'Error', 'Last Checked', 'Final URL', 'Redirects' ) );
+        foreach ( $rows as $r ) {
+            fputcsv( $out, array(
+                $r->url,
+                $r->status,
+                $r->http_code,
+                $r->ref_count,
+                $r->error,
+                $r->checked_at,
+                $r->final_url ?? '',
+                $r->redirect_count ?? 0,
+            ) );
+        }
+        fclose( $out );
+        exit;
+    }
+
+    public static function filtered_rows( $filter_status = '', $filter_host = '', $search = '', $page = 1, $per_page = 50 ) {
+        global $wpdb;
+        $table  = LP_Scanner_DB::get_table_name();
+
+        $where  = array();
+        $params = array();
+
+        if ( $filter_status === '' || $filter_status === 'broken_all' ) {
+            $where[]  = 'status IN (%s, %s, %s)';
+            $params[] = 'broken';
+            $params[] = 'error';
+            $params[] = 'server_error';
+        } else {
+            $where[]  = 'status = %s';
+            $params[] = $filter_status;
+        }
+        if ( $filter_host !== '' ) {
+            $where[]  = 'url LIKE %s';
+            $params[] = '%' . $wpdb->esc_like( $filter_host ) . '%';
+        }
+        if ( $search !== '' ) {
+            $where[]  = '(url LIKE %s OR error LIKE %s)';
+            $params[] = '%' . $wpdb->esc_like( $search ) . '%';
+            $params[] = '%' . $wpdb->esc_like( $search ) . '%';
+        }
+
+        $where_sql = 'WHERE ' . implode( ' AND ', $where );
+        $offset    = max( 0, ( $page - 1 ) * $per_page );
+
+        $total_sql = "SELECT COUNT(*) FROM {$table} {$where_sql}";
+        $total     = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, ...$params ) );
+
+        $rows_sql    = "SELECT * FROM {$table} {$where_sql} ORDER BY ref_count DESC, url ASC LIMIT %d OFFSET %d";
+        $rows_params = array_merge( $params, array( $per_page, $offset ) );
+        $rows        = $wpdb->get_results( $wpdb->prepare( $rows_sql, ...$rows_params ) );
+
+        return array( 'rows' => $rows, 'total' => $total );
     }
 
     public static function add_page() {
@@ -30,7 +97,17 @@ class LP_Scanner_Admin {
 
     public static function render_page() {
         $summary = LP_Scanner_DB::get_summary();
-        $broken  = LP_Scanner_DB::get_broken();
+
+        $filter_status = isset( $_GET['status'] )    ? sanitize_text_field( wp_unslash( $_GET['status'] ) )    : '';
+        $filter_host   = isset( $_GET['host'] )      ? sanitize_text_field( wp_unslash( $_GET['host'] ) )      : '';
+        $search        = isset( $_GET['s'] )         ? sanitize_text_field( wp_unslash( $_GET['s'] ) )         : '';
+        $page          = isset( $_GET['paged'] )     ? max( 1, (int) $_GET['paged'] )                          : 1;
+        $per_page      = 50;
+
+        $filtered = self::filtered_rows( $filter_status, $filter_host, $search, $page, $per_page );
+        $broken   = $filtered['rows'];
+        $total    = $filtered['total'];
+        $pages    = max( 1, (int) ceil( $total / $per_page ) );
         ?>
         <div class="wrap">
             <h1><?php esc_html_e( 'Link Scanner', 'linkpilot' ); ?></h1>
@@ -72,7 +149,28 @@ class LP_Scanner_Admin {
             <div id="lp-scanner-scan-progress"></div>
             <div id="lp-scanner-check-progress"></div>
 
-            <h2><?php esc_html_e( 'Broken & unreachable URLs', 'linkpilot' ); ?> <span style="color:#787c82;font-weight:normal;">(<?php echo count( $broken ); ?>)</span></h2>
+            <h2>
+                <?php esc_html_e( 'Broken & unreachable URLs', 'linkpilot' ); ?>
+                <span style="color:#787c82;font-weight:normal;">(<?php echo esc_html( number_format_i18n( $total ) ); ?>)</span>
+            </h2>
+
+            <form method="get" style="margin:12px 0;padding:10px;background:#fff;border:1px solid #ccd0d4;display:flex;gap:10px;flex-wrap:wrap;align-items:center;max-width:1300px;">
+                <input type="hidden" name="post_type" value="lp_link" />
+                <input type="hidden" name="page" value="lp-scanner" />
+                <select name="status">
+                    <option value=""           <?php selected( $filter_status, '' ); ?>><?php esc_html_e( 'All broken/error', 'linkpilot' ); ?></option>
+                    <option value="broken"     <?php selected( $filter_status, 'broken' ); ?>><?php esc_html_e( 'Broken (4xx)', 'linkpilot' ); ?></option>
+                    <option value="server_error" <?php selected( $filter_status, 'server_error' ); ?>><?php esc_html_e( 'Server error (5xx)', 'linkpilot' ); ?></option>
+                    <option value="error"      <?php selected( $filter_status, 'error' ); ?>><?php esc_html_e( 'Unreachable', 'linkpilot' ); ?></option>
+                    <option value="redirect"   <?php selected( $filter_status, 'redirect' ); ?>><?php esc_html_e( 'Redirects', 'linkpilot' ); ?></option>
+                    <option value="healthy"    <?php selected( $filter_status, 'healthy' ); ?>><?php esc_html_e( 'Healthy', 'linkpilot' ); ?></option>
+                    <option value="dismissed"  <?php selected( $filter_status, 'dismissed' ); ?>><?php esc_html_e( 'Dismissed', 'linkpilot' ); ?></option>
+                </select>
+                <input type="text" name="host" value="<?php echo esc_attr( $filter_host ); ?>" placeholder="<?php esc_attr_e( 'Filter by host (e.g. example.com)', 'linkpilot' ); ?>" style="width:240px;" />
+                <input type="search" name="s" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'Search URL or error', 'linkpilot' ); ?>" style="flex:1;min-width:200px;" />
+                <button type="submit" class="button"><?php esc_html_e( 'Filter', 'linkpilot' ); ?></button>
+                <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=lp_scanner_export_csv' ), 'lp_scanner_export_csv' ) ); ?>" class="button"><?php esc_html_e( 'Download CSV', 'linkpilot' ); ?></a>
+            </form>
 
             <?php if ( empty( $broken ) ) : ?>
                 <div style="background:#fff;border:1px solid #ccd0d4;padding:20px;max-width:900px;">
@@ -119,6 +217,31 @@ class LP_Scanner_Admin {
                     <?php esc_html_e( ' · ', 'linkpilot' ); ?>
                     <strong><?php esc_html_e( 'Dismiss', 'linkpilot' ); ?>:</strong> <?php esc_html_e( 'Hide from the broken list; URL stays in your content untouched.', 'linkpilot' ); ?>
                 </p>
+
+                <?php if ( $pages > 1 ) :
+                    $base = add_query_arg( array( 'status' => $filter_status, 'host' => $filter_host, 's' => $search ) ); ?>
+                    <div class="tablenav" style="margin-top:12px;">
+                        <div class="tablenav-pages">
+                            <span class="displaying-num">
+                                <?php
+                                /* translators: %s: number of broken URLs */
+                                echo esc_html( sprintf( _n( '%s item', '%s items', $total, 'linkpilot' ), number_format_i18n( $total ) ) );
+                                ?>
+                            </span>
+                            <?php
+                            echo wp_kses_post( paginate_links( array(
+                                'base'      => add_query_arg( 'paged', '%#%', $base ),
+                                'format'    => '',
+                                'current'   => $page,
+                                'total'     => $pages,
+                                'prev_text' => '‹',
+                                'next_text' => '›',
+                                'type'      => 'list',
+                            ) ) );
+                            ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
 

@@ -66,13 +66,17 @@ class LP_Job_Runner {
         $job_id = isset( $_POST['job_id'] ) ? sanitize_key( wp_unslash( $_POST['job_id'] ) ) : '';
         $key    = 'scanner_extract_' . $job_id;
 
+        $types         = LP_Scanner::get_post_types();
+        $placeholders  = implode( ',', array_fill( 0, count( $types ), '%s' ) );
+
         $state = get_transient( self::state_key( $key ) );
         if ( ! is_array( $state ) ) {
             global $wpdb;
-            $total = (int) $wpdb->get_var(
+            $total = (int) $wpdb->get_var( $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$wpdb->posts}
-                 WHERE post_type IN ('post', 'page') AND post_status = 'publish'"
-            );
+                 WHERE post_type IN ({$placeholders}) AND post_status = 'publish'",
+                ...$types
+            ) );
             $state = array(
                 'offset'  => 0,
                 'total'   => $total,
@@ -81,13 +85,13 @@ class LP_Job_Runner {
         }
 
         global $wpdb;
+        $params = array_merge( $types, array( LP_Scanner::SCAN_BATCH, $state['offset'] ) );
         $ids = $wpdb->get_col( $wpdb->prepare(
             "SELECT ID FROM {$wpdb->posts}
-             WHERE post_type IN ('post', 'page')
+             WHERE post_type IN ({$placeholders})
              AND post_status = 'publish'
              ORDER BY ID ASC LIMIT %d OFFSET %d",
-            LP_Scanner::SCAN_BATCH,
-            $state['offset']
+            ...$params
         ) );
 
         foreach ( $ids as $pid ) {
@@ -146,7 +150,7 @@ class LP_Job_Runner {
         $results = LP_Scanner_Checker::check_batch( $urls );
 
         foreach ( $results as $url => $r ) {
-            LP_Scanner_DB::set_status( $url, $r['status'], $r['code'], $r['error'] );
+            LP_Scanner_DB::set_status( $url, $r['status'], $r['code'], $r['error'], $r['final_url'] ?? null, $r['redirect_count'] ?? 0 );
             $bucket = in_array( $r['status'], array( 'broken', 'server_error' ), true ) ? 'broken' : $r['status'];
             if ( isset( $state['results'][ $bucket ] ) ) {
                 $state['results'][ $bucket ]++;

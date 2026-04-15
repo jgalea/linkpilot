@@ -86,6 +86,24 @@ class LP_Settings {
         self::add_field( 'lp_scanner_allowlist', __( 'Scanner Allowed Domains', 'linkpilot' ), 'textarea', 'lp_modules', '', array(),
             __( 'Domains to skip when scanning outbound links. One per line, no http://. Subdomains match automatically (example.com also matches blog.example.com).', 'linkpilot' )
         );
+        self::add_field( 'lp_scanner_url_exclusion', __( 'Scanner URL Exclusion Patterns', 'linkpilot' ), 'textarea', 'lp_modules', '', array(),
+            __( 'URL substrings or regex patterns to skip. One per line. Wrap in slashes for regex (e.g. /^https:\/\/api\./). Plain text matches substring, case-insensitive.', 'linkpilot' )
+        );
+        self::add_field( 'lp_scanner_post_types', __( 'Scanner Post Types', 'linkpilot' ), 'text', 'lp_modules', 'post,page', array(),
+            __( 'Comma-separated post types to scan. Defaults to "post,page". Example: "post,page,product".', 'linkpilot' )
+        );
+        self::add_field( 'lp_scanner_containers', __( 'Scanner Containers', 'linkpilot' ), 'text', 'lp_modules', 'content', array(),
+            __( 'Content sources to scan. Comma-separated: content (post body), comments (approved comments), meta (standard custom fields), acf (Advanced Custom Fields). Default: content.', 'linkpilot' )
+        );
+        self::add_field( 'lp_scanner_notify_enabled', __( 'Scanner Weekly Digest Email', 'linkpilot' ), 'select', 'lp_modules', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Send a weekly email summarizing broken links found in the last 7 days. Sent to the site admin email unless a custom recipient is set.', 'linkpilot' )
+        );
+        self::add_field( 'lp_scanner_notify_on_break', __( 'Scanner Real-Time Break Alert', 'linkpilot' ), 'select', 'lp_modules', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Email immediately when a previously healthy URL starts failing. High-signal but can be chatty if you have many URLs.', 'linkpilot' )
+        );
+        self::add_field( 'lp_scanner_notify_recipient', __( 'Scanner Email Recipient', 'linkpilot' ), 'text', 'lp_modules', '', array(),
+            __( 'Optional override for the admin email. Leave blank to use the site admin email.', 'linkpilot' )
+        );
 
         add_settings_section( 'lp_external_links', __( 'External Links', 'linkpilot' ), array( __CLASS__, 'external_intro' ), 'lp-settings' );
 
