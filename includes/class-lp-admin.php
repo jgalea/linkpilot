@@ -199,7 +199,7 @@ class LP_Admin {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page detection, not processing form data.
         $page   = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
-        $lp_pages = array( 'lp-dashboard', 'lp-settings', 'lp-migrate', 'lp-setup', 'lp-import-export', 'lp-scanner', 'lpp-geo-overrides' );
+        $lp_pages = array( 'lp-dashboard', 'lp-settings', 'lp-migrate', 'lp-setup', 'lp-import-export', 'lp-scanner', 'lp-scanner-redirects', 'lpp-geo-overrides' );
 
         $is_lp_screen = ( $screen && $screen->post_type === 'lp_link' );
         $is_lp_page   = in_array( $page, $lp_pages, true );

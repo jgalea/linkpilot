@@ -154,6 +154,35 @@ class LP_Scanner_DB {
         return $wpdb->get_results( "SELECT * FROM {$table} WHERE status IN ('broken', 'error', 'server_error') ORDER BY ref_count DESC, url ASC" );
     }
 
+    public static function get_redirects() {
+        global $wpdb;
+        $table = self::get_table_name();
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from constant.
+        return $wpdb->get_results(
+            "SELECT * FROM {$table}
+             WHERE redirect_count > 0
+             AND final_url IS NOT NULL
+             AND final_url != ''
+             AND final_url != url
+             AND status IN ('healthy', 'redirect')
+             ORDER BY ref_count DESC, url ASC"
+        );
+    }
+
+    public static function get_redirect_count() {
+        global $wpdb;
+        $table = self::get_table_name();
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from constant.
+        return (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$table}
+             WHERE redirect_count > 0
+             AND final_url IS NOT NULL
+             AND final_url != ''
+             AND final_url != url
+             AND status IN ('healthy', 'redirect')"
+        );
+    }
+
     public static function refresh_ref_counts() {
         global $wpdb;
         $table = self::get_table_name();

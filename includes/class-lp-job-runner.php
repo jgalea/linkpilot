@@ -28,6 +28,50 @@ class LP_Job_Runner {
         add_action( 'wp_ajax_lp_scanner_rewrite', array( __CLASS__, 'handle_scanner_rewrite' ) );
         add_action( 'wp_ajax_lp_scanner_unlink', array( __CLASS__, 'handle_scanner_unlink' ) );
         add_action( 'wp_ajax_lp_scanner_dismiss', array( __CLASS__, 'handle_scanner_dismiss' ) );
+        add_action( 'wp_ajax_lp_job_scanner_canonicalize', array( __CLASS__, 'handle_scanner_canonicalize' ) );
+    }
+
+    public static function handle_scanner_canonicalize() {
+        self::verify();
+        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( wp_unslash( $_POST['job_id'] ) ) : '';
+        $key    = 'scanner_canon_' . $job_id;
+
+        $state = get_transient( self::state_key( $key ) );
+        if ( ! is_array( $state ) ) {
+            $redirects = LP_Scanner_DB::get_redirects();
+            $state = array(
+                'queue'     => array_map( function ( $r ) {
+                    return array( 'url' => $r->url, 'final' => $r->final_url );
+                }, $redirects ),
+                'total'     => count( $redirects ),
+                'processed' => 0,
+                'results'   => array( 'urls_rewritten' => 0, 'posts_updated' => 0 ),
+            );
+        }
+
+        $batch = array_splice( $state['queue'], 0, 5 );
+        foreach ( $batch as $item ) {
+            $updated = LP_Scanner_Rewriter::rewrite( $item['url'], $item['final'] );
+            if ( $updated > 0 ) {
+                $state['results']['urls_rewritten']++;
+                $state['results']['posts_updated'] += $updated;
+            }
+            $state['processed']++;
+        }
+
+        $done = empty( $state['queue'] );
+        if ( $done ) {
+            delete_transient( self::state_key( $key ) );
+        } else {
+            set_transient( self::state_key( $key ), $state, HOUR_IN_SECONDS );
+        }
+
+        wp_send_json_success( array(
+            'done'      => $done,
+            'processed' => $state['processed'],
+            'total'     => $state['total'],
+            'results'   => $state['results'],
+        ) );
     }
 
     public static function handle_scanner_rewrite() {

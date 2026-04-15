@@ -72,16 +72,24 @@
     }
 
     var LABELS = {
-        links:      'Links imported',
-        categories: 'Categories created',
-        skipped:    'Skipped (already existed)',
-        errors:     'Errors',
-        healthy:    'Healthy',
-        broken:     'Broken (4xx)',
-        server_error: 'Server error (5xx)',
-        error:      'Unreachable',
-        no_url:     'No URL',
-        unknown:    'Unknown',
+        links:          'Links imported',
+        categories:     'Categories created',
+        skipped:        'Skipped (already existed)',
+        errors:         'Errors',
+        healthy:        'Healthy',
+        broken:         'Broken (4xx)',
+        server_error:   'Server error (5xx)',
+        error:          'Unreachable',
+        no_url:         'No URL',
+        unknown:        'Unknown',
+        blocked:        'Blocked (refused)',
+        redirect:       'Redirects',
+        urls_rewritten: 'URLs rewritten',
+        posts_updated:  'Posts updated',
+        urls_found:     'URLs found',
+        posts_scanned:  'Posts scanned',
+        replacements:   'Replacements',
+        updated:        'Posts updated',
     };
 
     var HIDDEN = ['clicks'];

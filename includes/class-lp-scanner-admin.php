@@ -107,6 +107,111 @@ class LP_Scanner_Admin {
             'lp-scanner',
             array( __CLASS__, 'render_page' )
         );
+        add_submenu_page(
+            'edit.php?post_type=lp_link',
+            __( 'Canonicalize Redirects', 'linkpilot' ),
+            __( 'Canonicalize Redirects', 'linkpilot' ),
+            'manage_options',
+            'lp-scanner-redirects',
+            array( __CLASS__, 'render_redirects_page' )
+        );
+    }
+
+    public static function render_redirects_page() {
+        $all_redirects = LP_Scanner_DB::get_redirects();
+        ?>
+        <div class="wrap">
+            <h1><?php esc_html_e( 'Canonicalize Redirects', 'linkpilot' ); ?></h1>
+            <p class="description">
+                <?php esc_html_e( 'URLs in your posts that redirect to a different final destination. Click "Canonicalize" to rewrite the original URL to the final URL across every post that uses it — post revisions are kept automatically. This fixes HTTPS migration leftovers and URL restructuring in one pass.', 'linkpilot' ); ?>
+            </p>
+
+            <?php if ( empty( $all_redirects ) ) : ?>
+                <div style="background:#fff;border:1px solid #ccd0d4;padding:20px;max-width:900px;">
+                    <p><?php esc_html_e( 'No redirects detected yet. Run the Link Scanner first from the Link Scanner page.', 'linkpilot' ); ?></p>
+                </div>
+                <?php return; endif; ?>
+
+            <p style="margin:16px 0;">
+                <button type="button" class="button button-primary" id="lp-canonicalize-all">
+                    <?php printf( esc_html__( 'Canonicalize all %d redirects', 'linkpilot' ), count( $all_redirects ) ); ?>
+                </button>
+                <span class="description" style="margin-left:12px;">
+                    <?php esc_html_e( 'Processes one URL per second to avoid DB spikes. You can leave the page running.', 'linkpilot' ); ?>
+                </span>
+            </p>
+
+            <div id="lp-canonicalize-progress"></div>
+
+            <table class="widefat striped" style="max-width:1300px;">
+                <thead>
+                    <tr>
+                        <th><?php esc_html_e( 'Original URL', 'linkpilot' ); ?></th>
+                        <th style="width:30px;">→</th>
+                        <th><?php esc_html_e( 'Final URL', 'linkpilot' ); ?></th>
+                        <th style="width:70px;"><?php esc_html_e( 'Hops', 'linkpilot' ); ?></th>
+                        <th style="width:70px;"><?php esc_html_e( 'Posts', 'linkpilot' ); ?></th>
+                        <th style="width:160px;"><?php esc_html_e( 'Action', 'linkpilot' ); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ( $all_redirects as $r ) : ?>
+                        <tr class="lp-redirect-row" data-original="<?php echo esc_attr( $r->url ); ?>" data-final="<?php echo esc_attr( $r->final_url ); ?>">
+                            <td style="word-break:break-all;"><?php echo esc_html( $r->url ); ?></td>
+                            <td style="text-align:center;color:#787c82;">→</td>
+                            <td style="word-break:break-all;"><?php echo esc_html( $r->final_url ); ?></td>
+                            <td><?php echo esc_html( $r->redirect_count ); ?></td>
+                            <td><?php echo esc_html( $r->ref_count ); ?></td>
+                            <td>
+                                <button type="button" class="button button-small lp-canonicalize-one"><?php esc_html_e( 'Canonicalize', 'linkpilot' ); ?></button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+        (function () {
+            document.querySelectorAll('.lp-canonicalize-one').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var row = this.closest('.lp-redirect-row');
+                    var original = row.getAttribute('data-original');
+                    var final = row.getAttribute('data-final');
+                    if (!window.confirm('<?php echo esc_js( __( 'Rewrite this URL across every post that uses it?', 'linkpilot' ) ); ?>\n\n' + original + '\n→\n' + final)) return;
+                    this.disabled = true;
+                    this.textContent = '…';
+                    LPJobRunner.postJSON('lp_scanner_rewrite', { old_url: original, new_url: final }).then(function (r) {
+                        if (r && r.success) {
+                            row.style.opacity = '0.5';
+                            btn.textContent = '<?php echo esc_js( __( 'Updated', 'linkpilot' ) ); ?> (' + r.data.updated + ')';
+                        } else {
+                            btn.disabled = false;
+                            btn.textContent = '<?php echo esc_js( __( 'Retry', 'linkpilot' ) ); ?>';
+                            alert('Error: ' + ((r && r.data && r.data.message) || 'unknown'));
+                        }
+                    });
+                });
+            });
+
+            document.getElementById('lp-canonicalize-all').addEventListener('click', function () {
+                if (!window.confirm('<?php echo esc_js( __( 'Rewrite ALL redirected URLs to their final destinations across every post on this site? Post revisions are kept. This may modify many posts.', 'linkpilot' ) ); ?>')) return;
+                this.disabled = true;
+                this.textContent = '<?php echo esc_js( __( 'Canonicalizing…', 'linkpilot' ) ); ?>';
+                LPJobRunner.start({
+                    action: 'lp_job_scanner_canonicalize',
+                    containerId: 'lp-canonicalize-progress',
+                    label: '<?php echo esc_js( __( 'Rewriting redirected URLs', 'linkpilot' ) ); ?>',
+                    onDone: function () {
+                        document.getElementById('lp-canonicalize-all').textContent = '<?php echo esc_js( __( 'Done (reload to see remaining)', 'linkpilot' ) ); ?>';
+                        document.getElementById('lp-canonicalize-all').disabled = false;
+                        document.getElementById('lp-canonicalize-all').addEventListener('click', function () { location.reload(); }, { once: true });
+                    }
+                });
+            });
+        })();
+        </script>
+        <?php
     }
 
     public static function render_page() {
