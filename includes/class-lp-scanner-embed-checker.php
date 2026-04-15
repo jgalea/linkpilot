@@ -45,7 +45,7 @@ class LP_Scanner_Embed_Checker {
         if ( in_array( $host, array( 'youtu.be' ), true ) ) {
             return $path !== '' && $path !== '/';
         }
-        if ( preg_match( '/(?:^|\.)youtube\.[^/]+$/', $host ) ) {
+        if ( preg_match( '#(?:^|\.)youtube\.[^/]+$#', $host ) ) {
             if ( stripos( $path, '/watch' ) === 0 ) return true;
             if ( stripos( $path, '/embed/' ) === 0 ) return true;
             if ( stripos( $path, '/shorts/' ) === 0 ) return true;
@@ -58,7 +58,7 @@ class LP_Scanner_Embed_Checker {
         $host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
         $path = (string) wp_parse_url( $url, PHP_URL_PATH );
 
-        if ( preg_match( '/(?:^|\.)vimeo\.com$/', $host ) ) {
+        if ( preg_match( '#(?:^|\.)vimeo\.com$#', $host ) ) {
             // Must have a video ID path — not just vimeo.com/
             if ( preg_match( '#^/\d+#', $path ) ) return true;
             if ( preg_match( '#^/[^/]+/[^/]+#', $path ) && $path !== '/' ) return true;
@@ -87,6 +87,9 @@ class LP_Scanner_Embed_Checker {
 
         if ( $code === 200 ) {
             return array( 'status' => 'healthy', 'code' => $code, 'error' => '' );
+        }
+        if ( $code === 400 ) {
+            return array( 'status' => 'broken', 'code' => $code, 'error' => 'Invalid embed URL / unknown video ID' );
         }
         if ( $code === 401 ) {
             return array( 'status' => 'broken', 'code' => $code, 'error' => 'Video is private or embed disabled' );
