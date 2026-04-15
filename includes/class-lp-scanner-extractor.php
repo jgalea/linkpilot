@@ -81,28 +81,26 @@ class LP_Scanner_Extractor {
         static $cached = null;
         if ( $cached !== null ) return $cached;
 
-        $raw = get_option( 'lp_scanner_allowlist', '' );
-        if ( ! $raw ) {
-            $cached = array();
-            return $cached;
-        }
+        $out = array();
 
-        $lines = preg_split( '/\R/', $raw );
-        $out   = array();
-        foreach ( $lines as $line ) {
-            $line = strtolower( trim( $line ) );
-            if ( ! $line ) continue;
-            $line = preg_replace( '#^https?://#', '', $line );
-            $line = preg_replace( '#^www\.#', '', $line );
-            $line = rtrim( $line, '/' );
-            if ( $line ) $out[] = $line;
-        }
-
+        // Always allowlist the site's own host (internal links are never "broken outbound links").
         $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
         if ( $site_host ) {
-            $site_host = preg_replace( '#^www\.#', '', strtolower( $site_host ) );
-            if ( ! in_array( $site_host, $out, true ) ) {
-                $out[] = $site_host;
+            $out[] = preg_replace( '#^www\.#', '', strtolower( $site_host ) );
+        }
+
+        $raw = get_option( 'lp_scanner_allowlist', '' );
+        if ( $raw ) {
+            $lines = preg_split( '/\R/', $raw );
+            foreach ( $lines as $line ) {
+                $line = strtolower( trim( $line ) );
+                if ( ! $line ) continue;
+                $line = preg_replace( '#^https?://#', '', $line );
+                $line = preg_replace( '#^www\.#', '', $line );
+                $line = rtrim( $line, '/' );
+                if ( $line && ! in_array( $line, $out, true ) ) {
+                    $out[] = $line;
+                }
             }
         }
 
