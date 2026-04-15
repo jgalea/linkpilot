@@ -79,7 +79,7 @@ class LP_Scanner_Admin {
                     <p><?php esc_html_e( 'No broken links found yet. Run "Scan all posts now" to start.', 'linkpilot' ); ?></p>
                 </div>
             <?php else : ?>
-                <table class="widefat striped" style="max-width:1200px;">
+                <table class="widefat striped" style="max-width:1300px;">
                     <thead>
                         <tr>
                             <th><?php esc_html_e( 'URL', 'linkpilot' ); ?></th>
@@ -87,30 +87,85 @@ class LP_Scanner_Admin {
                             <th style="width:70px;"><?php esc_html_e( 'Code', 'linkpilot' ); ?></th>
                             <th style="width:70px;"><?php esc_html_e( 'Posts', 'linkpilot' ); ?></th>
                             <th style="width:140px;"><?php esc_html_e( 'Last checked', 'linkpilot' ); ?></th>
+                            <th style="width:240px;"><?php esc_html_e( 'Actions', 'linkpilot' ); ?></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ( $broken as $row ) : ?>
-                            <tr>
+                            <tr class="lp-broken-row" data-url="<?php echo esc_attr( $row->url ); ?>">
                                 <td>
                                     <a href="<?php echo esc_url( $row->url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $row->url ); ?></a>
                                     <?php if ( $row->error ) : ?>
                                         <div style="color:#d63638;font-size:12px;margin-top:4px;"><?php echo esc_html( $row->error ); ?></div>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo esc_html( $row->status ); ?></td>
+                                <td class="lp-col-status"><?php echo esc_html( $row->status ); ?></td>
                                 <td><?php echo esc_html( $row->http_code ?: '—' ); ?></td>
                                 <td><?php echo esc_html( $row->ref_count ); ?></td>
                                 <td><?php echo esc_html( $row->checked_at ?: '—' ); ?></td>
+                                <td>
+                                    <button type="button" class="button button-small lp-rewrite"><?php esc_html_e( 'Rewrite', 'linkpilot' ); ?></button>
+                                    <button type="button" class="button button-small lp-unlink"><?php esc_html_e( 'Unlink', 'linkpilot' ); ?></button>
+                                    <button type="button" class="button button-small button-link-delete lp-dismiss"><?php esc_html_e( 'Dismiss', 'linkpilot' ); ?></button>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <p class="description">
+                    <strong><?php esc_html_e( 'Rewrite', 'linkpilot' ); ?>:</strong> <?php esc_html_e( 'Replace the URL across every post that uses it. Post revisions are kept.', 'linkpilot' ); ?>
+                    <?php esc_html_e( ' · ', 'linkpilot' ); ?>
+                    <strong><?php esc_html_e( 'Unlink', 'linkpilot' ); ?>:</strong> <?php esc_html_e( 'Remove the link wrapper, keep the visible text. Post revisions are kept.', 'linkpilot' ); ?>
+                    <?php esc_html_e( ' · ', 'linkpilot' ); ?>
+                    <strong><?php esc_html_e( 'Dismiss', 'linkpilot' ); ?>:</strong> <?php esc_html_e( 'Hide from the broken list; URL stays in your content untouched.', 'linkpilot' ); ?>
+                </p>
             <?php endif; ?>
         </div>
 
         <script>
         (function () {
+            // Row actions
+            document.querySelectorAll('.lp-broken-row').forEach(function (row) {
+                var url = row.getAttribute('data-url');
+                row.querySelector('.lp-rewrite').addEventListener('click', function () {
+                    var newUrl = window.prompt('<?php echo esc_js( __( 'Replace this URL with:', 'linkpilot' ) ); ?>\n\n' + url, url);
+                    if (!newUrl || newUrl === url) return;
+                    this.disabled = true;
+                    this.textContent = '<?php echo esc_js( __( '…', 'linkpilot' ) ); ?>';
+                    LPJobRunner.postJSON('lp_scanner_rewrite', { old_url: url, new_url: newUrl }).then(function (r) {
+                        if (r && r.success) {
+                            row.style.opacity = '0.5';
+                            row.querySelector('.lp-col-status').textContent = '<?php echo esc_js( __( 'rewritten', 'linkpilot' ) ); ?>';
+                            alert('<?php echo esc_js( __( 'Updated', 'linkpilot' ) ); ?> ' + r.data.updated + ' <?php echo esc_js( __( 'post(s).', 'linkpilot' ) ); ?>');
+                        } else {
+                            alert('Error: ' + ((r && r.data && r.data.message) || 'unknown'));
+                        }
+                    });
+                });
+                row.querySelector('.lp-unlink').addEventListener('click', function () {
+                    if (!window.confirm('<?php echo esc_js( __( 'Remove the link wrapper from this URL in every post? Link text stays; post revisions are kept.', 'linkpilot' ) ); ?>')) return;
+                    this.disabled = true;
+                    this.textContent = '<?php echo esc_js( __( '…', 'linkpilot' ) ); ?>';
+                    LPJobRunner.postJSON('lp_scanner_unlink', { url: url }).then(function (r) {
+                        if (r && r.success) {
+                            row.style.opacity = '0.5';
+                            row.querySelector('.lp-col-status').textContent = '<?php echo esc_js( __( 'unlinked', 'linkpilot' ) ); ?>';
+                            alert('<?php echo esc_js( __( 'Unlinked in', 'linkpilot' ) ); ?> ' + r.data.updated + ' <?php echo esc_js( __( 'post(s).', 'linkpilot' ) ); ?>');
+                        } else {
+                            alert('Error: ' + ((r && r.data && r.data.message) || 'unknown'));
+                        }
+                    });
+                });
+                row.querySelector('.lp-dismiss').addEventListener('click', function () {
+                    this.disabled = true;
+                    LPJobRunner.postJSON('lp_scanner_dismiss', { url: url }).then(function (r) {
+                        if (r && r.success) {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
             document.getElementById('lp-scanner-start').addEventListener('click', function () {
                 this.disabled = true;
                 this.textContent = '<?php echo esc_js( __( 'Scanning…', 'linkpilot' ) ); ?>';

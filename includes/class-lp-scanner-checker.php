@@ -19,8 +19,16 @@ class LP_Scanner_Checker {
             return array();
         }
 
+        // Rate limit: take a token per host before queueing its request. This
+        // paces us at ~3 req/sec per host with 0.5s minimum interval so we
+        // don't hammer a single destination when many broken URLs share it.
+        $limiter = new LP_Scanner_Rate_Limiter();
         $requests = array();
         foreach ( $urls as $url ) {
+            $host = LP_Scanner_Rate_Limiter::host_of( $url );
+            if ( $host ) {
+                $limiter->take( $host );
+            }
             $requests[ $url ] = array(
                 'url'     => $url,
                 'type'    => 'HEAD',

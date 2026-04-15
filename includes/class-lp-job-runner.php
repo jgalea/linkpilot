@@ -25,6 +25,40 @@ class LP_Job_Runner {
         add_action( 'wp_ajax_lp_job_health_one', array( __CLASS__, 'handle_health_one' ) );
         add_action( 'wp_ajax_lp_job_scanner_extract', array( __CLASS__, 'handle_scanner_extract' ) );
         add_action( 'wp_ajax_lp_job_scanner_check', array( __CLASS__, 'handle_scanner_check' ) );
+        add_action( 'wp_ajax_lp_scanner_rewrite', array( __CLASS__, 'handle_scanner_rewrite' ) );
+        add_action( 'wp_ajax_lp_scanner_unlink', array( __CLASS__, 'handle_scanner_unlink' ) );
+        add_action( 'wp_ajax_lp_scanner_dismiss', array( __CLASS__, 'handle_scanner_dismiss' ) );
+    }
+
+    public static function handle_scanner_rewrite() {
+        self::verify();
+        $old = isset( $_POST['old_url'] ) ? esc_url_raw( wp_unslash( $_POST['old_url'] ) ) : '';
+        $new = isset( $_POST['new_url'] ) ? esc_url_raw( wp_unslash( $_POST['new_url'] ) ) : '';
+        if ( ! $old || ! $new ) {
+            wp_send_json_error( array( 'message' => 'Missing URL' ), 400 );
+        }
+        $updated = LP_Scanner_Rewriter::rewrite( $old, $new );
+        wp_send_json_success( array( 'updated' => $updated ) );
+    }
+
+    public static function handle_scanner_unlink() {
+        self::verify();
+        $url = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
+        if ( ! $url ) {
+            wp_send_json_error( array( 'message' => 'Missing URL' ), 400 );
+        }
+        $updated = LP_Scanner_Rewriter::unlink( $url );
+        wp_send_json_success( array( 'updated' => $updated ) );
+    }
+
+    public static function handle_scanner_dismiss() {
+        self::verify();
+        $url = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
+        if ( ! $url ) {
+            wp_send_json_error( array( 'message' => 'Missing URL' ), 400 );
+        }
+        LP_Scanner_DB::set_status( $url, 'dismissed', 0, '' );
+        wp_send_json_success();
     }
 
     public static function handle_scanner_extract() {

@@ -12,17 +12,67 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LP_Scanner_Extractor {
 
     public static function extract( $content ) {
-        if ( empty( $content ) || strpos( $content, '<a' ) === false ) {
+        if ( empty( $content ) ) {
             return array();
         }
 
         $urls = array();
 
-        if ( preg_match_all( '/<a\s[^>]*href=(["\'])(.*?)\1[^>]*>/is', $content, $matches ) ) {
+        // 1. <a href>
+        if ( strpos( $content, '<a' ) !== false
+             && preg_match_all( '/<a\s[^>]*href=(["\'])(.*?)\1[^>]*>/is', $content, $matches ) ) {
             foreach ( $matches[2] as $href ) {
                 $url = self::normalize( $href );
                 if ( $url ) {
                     $urls[ $url ] = true;
+                }
+            }
+        }
+
+        // 2. <img src> and <source src>
+        if ( strpos( $content, '<img' ) !== false || strpos( $content, '<source' ) !== false ) {
+            if ( preg_match_all( '/<(?:img|source)\s[^>]*src=(["\'])(.*?)\1[^>]*>/is', $content, $matches ) ) {
+                foreach ( $matches[2] as $src ) {
+                    $url = self::normalize( $src );
+                    if ( $url ) {
+                        $urls[ $url ] = true;
+                    }
+                }
+            }
+        }
+
+        // 3. srcset (multiple URLs per attribute, comma-separated, with descriptors)
+        if ( strpos( $content, 'srcset' ) !== false
+             && preg_match_all( '/srcset=(["\'])(.*?)\1/is', $content, $matches ) ) {
+            foreach ( $matches[2] as $srcset ) {
+                foreach ( preg_split( '/\s*,\s*/', $srcset ) as $candidate ) {
+                    $parts = preg_split( '/\s+/', trim( $candidate ), 2 );
+                    if ( empty( $parts[0] ) ) continue;
+                    $url = self::normalize( $parts[0] );
+                    if ( $url ) {
+                        $urls[ $url ] = true;
+                    }
+                }
+            }
+        }
+
+        // 4. YouTube / Vimeo iframe src (for embed checking)
+        if ( strpos( $content, '<iframe' ) !== false
+             && preg_match_all( '/<iframe\s[^>]*src=(["\'])(.*?)\1[^>]*>/is', $content, $matches ) ) {
+            foreach ( $matches[2] as $src ) {
+                $url = self::normalize( $src );
+                if ( $url ) {
+                    $urls[ $url ] = true;
+                }
+            }
+        }
+
+        // 5. Raw YouTube/Vimeo URLs in content (WP auto-embeds) — match URLs on their own line
+        if ( preg_match_all( '#(?:^|\s)(https?://(?:www\.)?(?:youtube\.com|youtu\.be|vimeo\.com)/[^\s<>"\']+)#i', $content, $matches ) ) {
+            foreach ( $matches[1] as $url ) {
+                $norm = self::normalize( $url );
+                if ( $norm ) {
+                    $urls[ $norm ] = true;
                 }
             }
         }
