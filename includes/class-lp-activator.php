@@ -7,6 +7,7 @@ class LP_Activator {
 
     public static function activate() {
         LP_Clicks_DB::create_table();
+        LP_Scanner_DB::create_table();
         self::set_default_options();
         LP_Link_Health::schedule();
         set_transient( 'lp_activation_redirect', true, 30 );

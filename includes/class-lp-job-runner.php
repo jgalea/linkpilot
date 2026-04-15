@@ -23,6 +23,117 @@ class LP_Job_Runner {
         add_action( 'wp_ajax_lp_job_scan', array( __CLASS__, 'handle_scan' ) );
         add_action( 'wp_ajax_lp_job_health', array( __CLASS__, 'handle_health' ) );
         add_action( 'wp_ajax_lp_job_health_one', array( __CLASS__, 'handle_health_one' ) );
+        add_action( 'wp_ajax_lp_job_scanner_extract', array( __CLASS__, 'handle_scanner_extract' ) );
+        add_action( 'wp_ajax_lp_job_scanner_check', array( __CLASS__, 'handle_scanner_check' ) );
+    }
+
+    public static function handle_scanner_extract() {
+        self::verify();
+        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( wp_unslash( $_POST['job_id'] ) ) : '';
+        $key    = 'scanner_extract_' . $job_id;
+
+        $state = get_transient( self::state_key( $key ) );
+        if ( ! is_array( $state ) ) {
+            global $wpdb;
+            $total = (int) $wpdb->get_var(
+                "SELECT COUNT(*) FROM {$wpdb->posts}
+                 WHERE post_type IN ('post', 'page') AND post_status = 'publish'"
+            );
+            $state = array(
+                'offset'  => 0,
+                'total'   => $total,
+                'results' => array( 'urls_found' => 0, 'posts_scanned' => 0 ),
+            );
+        }
+
+        global $wpdb;
+        $ids = $wpdb->get_col( $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts}
+             WHERE post_type IN ('post', 'page')
+             AND post_status = 'publish'
+             ORDER BY ID ASC LIMIT %d OFFSET %d",
+            LP_Scanner::SCAN_BATCH,
+            $state['offset']
+        ) );
+
+        foreach ( $ids as $pid ) {
+            $state['results']['urls_found']   += LP_Scanner::scan_post( (int) $pid );
+            $state['results']['posts_scanned']++;
+        }
+
+        $state['offset'] += count( $ids );
+        $done = empty( $ids ) || $state['offset'] >= $state['total'];
+
+        if ( $done ) {
+            LP_Scanner_DB::refresh_ref_counts();
+            delete_transient( self::state_key( $key ) );
+        } else {
+            set_transient( self::state_key( $key ), $state, HOUR_IN_SECONDS );
+        }
+
+        wp_send_json_success( array(
+            'done'      => $done,
+            'processed' => $state['offset'],
+            'total'     => $state['total'],
+            'results'   => $state['results'],
+        ) );
+    }
+
+    public static function handle_scanner_check() {
+        self::verify();
+        $job_id = isset( $_POST['job_id'] ) ? sanitize_key( wp_unslash( $_POST['job_id'] ) ) : '';
+        $key    = 'scanner_check_' . $job_id;
+
+        $state = get_transient( self::state_key( $key ) );
+        if ( ! is_array( $state ) ) {
+            global $wpdb;
+            $total = (int) $wpdb->get_var(
+                "SELECT COUNT(*) FROM " . LP_Scanner_DB::get_table_name()
+            );
+            $state = array(
+                'offset'  => 0,
+                'total'   => $total,
+                'results' => array( 'healthy' => 0, 'broken' => 0, 'redirect' => 0, 'error' => 0 ),
+            );
+        }
+
+        $rows = LP_Scanner_DB::get_stale_urls( LP_Scanner::CHECK_BATCH, 0 );
+        if ( empty( $rows ) ) {
+            delete_transient( self::state_key( $key ) );
+            wp_send_json_success( array(
+                'done'      => true,
+                'processed' => $state['offset'],
+                'total'     => $state['total'],
+                'results'   => $state['results'],
+            ) );
+        }
+
+        $urls    = wp_list_pluck( $rows, 'url' );
+        $results = LP_Scanner_Checker::check_batch( $urls );
+
+        foreach ( $results as $url => $r ) {
+            LP_Scanner_DB::set_status( $url, $r['status'], $r['code'], $r['error'] );
+            $bucket = in_array( $r['status'], array( 'broken', 'server_error' ), true ) ? 'broken' : $r['status'];
+            if ( isset( $state['results'][ $bucket ] ) ) {
+                $state['results'][ $bucket ]++;
+            }
+        }
+
+        $state['offset'] += count( $urls );
+        $done = $state['offset'] >= $state['total'];
+
+        if ( $done ) {
+            delete_transient( self::state_key( $key ) );
+        } else {
+            set_transient( self::state_key( $key ), $state, HOUR_IN_SECONDS );
+        }
+
+        wp_send_json_success( array(
+            'done'      => $done,
+            'processed' => $state['offset'],
+            'total'     => $state['total'],
+            'results'   => $state['results'],
+        ) );
     }
 
     public static function get_nonce() {

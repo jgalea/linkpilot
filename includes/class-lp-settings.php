@@ -80,6 +80,42 @@ class LP_Settings {
         self::add_field( 'lp_enable_qr', __( 'QR Code Column', 'linkpilot' ), 'select', 'lp_modules', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
             __( 'Shows a QR download icon on the link list so you can get a printable QR code for any cloaked URL. Uses api.qrserver.com to generate on demand.', 'linkpilot' )
         );
+        self::add_field( 'lp_scanner_enabled', __( 'Link Scanner', 'linkpilot' ), 'select', 'lp_modules', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Scans outbound URLs in post content and flags broken or unreachable links. Runs hourly in the background; paced so it never hammers your host or the destinations. Cloaked LinkPilot URLs are excluded.', 'linkpilot' )
+        );
+        self::add_field( 'lp_scanner_allowlist', __( 'Scanner Allowed Domains', 'linkpilot' ), 'textarea', 'lp_modules', '', array(),
+            __( 'Domains to skip when scanning outbound links. One per line, no http://. Subdomains match automatically (example.com also matches blog.example.com).', 'linkpilot' )
+        );
+
+        add_settings_section( 'lp_external_links', __( 'External Links', 'linkpilot' ), array( __CLASS__, 'external_intro' ), 'lp-settings' );
+
+        self::add_field( 'lp_ext_enabled', __( 'Enable External Link Processing', 'linkpilot' ), 'select', 'lp_external_links', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Scans post content and adds the selected rel / target attributes to outbound links (any &lt;a&gt; pointing to a different domain). Cloaked LinkPilot links are left alone — they already use per-link settings.', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_rel_nofollow', __( 'Add rel="nofollow"', 'linkpilot' ), 'select', 'lp_external_links', 'yes', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Tells search engines not to pass link equity to external destinations. Recommended on by default.', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_rel_sponsored', __( 'Add rel="sponsored"', 'linkpilot' ), 'select', 'lp_external_links', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Marks paid/affiliate relationships. Only enable site-wide if all outbound links are sponsored — otherwise set per link via the allowlist.', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_rel_ugc', __( 'Add rel="ugc"', 'linkpilot' ), 'select', 'lp_external_links', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Marks user-generated content links. Useful if your posts embed links contributed by readers.', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_rel_noopener', __( 'Add rel="noopener"', 'linkpilot' ), 'select', 'lp_external_links', 'yes', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Prevents external pages from accessing window.opener when opened via target="_blank". Browser-safety best practice.', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_rel_noreferrer', __( 'Add rel="noreferrer"', 'linkpilot' ), 'select', 'lp_external_links', 'yes', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Hides the referring URL from the destination. Protects reader privacy.', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_target', __( 'Open in new window', 'linkpilot' ), 'select', 'lp_external_links', 'blank', array( 'blank' => 'Yes (target="_blank")', 'self' => 'No (same tab)' ),
+            __( 'Sets target on outbound links. Keeps readers on your site when they click away.', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_allowlist_domains', __( 'Allowed Domains (one per line)', 'linkpilot' ), 'textarea', 'lp_external_links', '', array(),
+            __( 'Domains treated as internal — no rel / target processing. One per line, without http://. Subdomains match automatically (e.g. "example.com" also matches "blog.example.com").', 'linkpilot' )
+        );
+        self::add_field( 'lp_ext_excluded_classes', __( 'Excluded CSS Classes (one per line)', 'linkpilot' ), 'textarea', 'lp_external_links', '', array(),
+            __( 'Leave a link alone if it has any of these CSS classes. Useful for buttons or widgets you manage manually.', 'linkpilot' )
+        );
     }
 
     public static function link_defaults_intro() {
@@ -92,6 +128,10 @@ class LP_Settings {
 
     public static function modules_intro() {
         echo '<p class="description">' . esc_html__( 'Optional features you can turn on or off without affecting the core redirect engine.', 'linkpilot' ) . '</p>';
+    }
+
+    public static function external_intro() {
+        echo '<p class="description">' . esc_html__( 'Process raw outbound links in post content (not cloaked LinkPilot links). Replaces the WP External Links plugin.', 'linkpilot' ) . '</p>';
     }
 
     private static function add_field( $id, $title, $type, $section, $default = '', $options = array(), $description = '' ) {

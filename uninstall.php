@@ -22,11 +22,16 @@ if ( $terms ) {
     }
 }
 
-// Unschedule health check cron
+// Unschedule all cron hooks
 wp_clear_scheduled_hook( 'lp_health_check_cron' );
+wp_clear_scheduled_hook( 'lp_scanner_cron_tick' );
 
-// Drop clicks table
+// Drop custom tables
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}lp_clicks" );
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}lp_scanner_urls" );
+
+// Delete scanner post meta
+$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_lp_scanner_urls', '_lp_scanner_last_scan')" );
 
 // Delete options
 $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'lp\_%'" );

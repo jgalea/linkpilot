@@ -35,6 +35,7 @@ LinkPilot helps you manage all your outbound links in one place. Create cloaked,
 * Nofollow, sponsored, UGC rel attributes
 * Query string passthrough
 * Dashboard with click statistics
+* External link processing — adds rel (nofollow, sponsored, noopener, noreferrer, ugc) and target attributes to raw outbound links in post content, with per-domain allowlist (replaces WP External Links)
 
 == External Services ==
 
