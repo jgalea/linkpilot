@@ -61,6 +61,7 @@ class LP_Admin {
         $total  = LP_Clicks_DB::get_total_clicks( $post->ID );
         $last30 = LP_Clicks_DB::get_clicks_for_link( $post->ID, 30 );
         $last7  = LP_Clicks_DB::get_clicks_for_link( $post->ID, 7 );
+        $daily  = LP_Clicks_DB::get_clicks_by_day( $post->ID, 30 );
         $bar_pct = $total > 0 ? round( ( $last30 / $total ) * 100 ) : 0;
         ?>
         <div class="lp-stats-box">
@@ -78,6 +79,11 @@ class LP_Admin {
                     <span class="lp-stat-row-value"><?php echo esc_html( number_format_i18n( $last7 ) ); ?></span>
                 </div>
             </div>
+            <?php if ( $last30 > 0 && class_exists( 'LP_Reports' ) ) : ?>
+            <div class="lp-stats-chart" style="margin-top: 12px;">
+                <?php echo LP_Reports::render_chart( $daily, 30 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG built from integer data. ?>
+            </div>
+            <?php endif; ?>
             <?php if ( $total > 0 ) : ?>
             <div class="lp-mini-bar">
                 <div class="lp-mini-bar-label">
@@ -199,7 +205,7 @@ class LP_Admin {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page detection, not processing form data.
         $page   = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
-        $lp_pages = array( 'lp-dashboard', 'lp-settings', 'lp-migrate', 'lp-setup', 'lp-import-export', 'lp-scanner', 'lp-scanner-redirects', 'lpp-geo-overrides' );
+        $lp_pages = array( 'lp-dashboard', 'lp-settings', 'lp-migrate', 'lp-setup', 'lp-import-export', 'lp-scanner', 'lp-scanner-redirects', 'lp-keyword-links', 'lp-redirects', 'lp-404-log', 'lp-previews', 'lp-reports', 'lp-backup', 'lpp-geo-overrides' );
 
         $is_lp_screen = ( $screen && $screen->post_type === 'lp_link' );
         $is_lp_page   = in_array( $page, $lp_pages, true );

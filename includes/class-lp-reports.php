@@ -37,21 +37,33 @@ class LP_Reports {
         }
 
         list( $from_date, $to_date ) = self::parse_range_from_request();
-        $from_sql                    = $from_date . ' 00:00:00';
-        $to_sql                      = gmdate( 'Y-m-d', strtotime( $to_date . ' UTC' ) + DAY_IN_SECONDS ) . ' 00:00:00';
+        list( $from_sql, $to_sql )   = self::range_to_utc_bounds( $from_date, $to_date );
+        $tz_offset                   = LP_Clicks_DB::site_tz_offset();
 
+        $daily     = LP_Clicks_DB::get_site_clicks_by_range( $from_sql, $to_sql, $tz_offset );
         $referrers = LP_Clicks_DB::get_site_top_referrers_range( $from_sql, $to_sql, 100 );
-        $daily     = LP_Clicks_DB::get_site_clicks_by_range( $from_sql, $to_sql );
+        $countries = LP_Clicks_DB::get_site_top_countries_range( $from_sql, $to_sql, 20 );
 
-        $export_url = wp_nonce_url( admin_url( 'admin-post.php?action=lp_clicks_export' ), 'lp_clicks_export' );
+        $export_url = wp_nonce_url(
+            add_query_arg(
+                array(
+                    'action' => 'lp_clicks_export',
+                    'from'   => $from_date,
+                    'to'     => $to_date,
+                ),
+                admin_url( 'admin-post.php' )
+            ),
+            'lp_clicks_export'
+        );
         $presets    = self::preset_ranges();
         $base_url   = admin_url( 'edit.php?post_type=lp_link&page=lp-reports' );
-        $min_date   = '2024-01-01'; // earliest sensible bound
-        $max_date   = gmdate( 'Y-m-d' );
+        $min_date   = '2024-01-01';
+        $max_date   = self::today_local();
+        $tz_name    = wp_timezone_string();
         ?>
         <div class="wrap">
             <h1 class="wp-heading-inline"><?php esc_html_e( 'LinkPilot Reports', 'linkpilot' ); ?></h1>
-            <a href="<?php echo esc_url( $export_url ); ?>" class="page-title-action"><?php esc_html_e( 'Export all clicks as CSV', 'linkpilot' ); ?></a>
+            <a href="<?php echo esc_url( $export_url ); ?>" class="page-title-action"><?php esc_html_e( 'Export clicks (selected range)', 'linkpilot' ); ?></a>
             <hr class="wp-header-end" />
 
             <form method="get" class="lp-reports-range" style="margin: 16px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
@@ -85,10 +97,11 @@ class LP_Reports {
             <p class="description" style="margin: 0 0 16px;">
                 <?php
                 echo esc_html( sprintf(
-                    /* translators: 1: start date, 2: end date */
-                    __( 'Showing %1$s to %2$s (bots excluded, dates in UTC).', 'linkpilot' ),
+                    /* translators: 1: start date, 2: end date, 3: timezone name */
+                    __( 'Showing %1$s to %2$s (bots excluded, %3$s time).', 'linkpilot' ),
                     $from_date,
-                    $to_date
+                    $to_date,
+                    $tz_name
                 ) );
                 ?>
             </p>
@@ -99,40 +112,127 @@ class LP_Reports {
                     <?php echo self::render_chart_range( $daily, $from_date, $to_date ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG built from integer data. ?>
                 </div>
 
-                <div class="lp-reports-card" style="background: #fff; border: 1px solid #ccd0d4; padding: 20px;">
-                    <h2 style="margin-top: 0;"><?php esc_html_e( 'Top referrers', 'linkpilot' ); ?></h2>
-                    <?php if ( empty( $referrers ) ) : ?>
-                        <p style="color: #757575;"><?php esc_html_e( 'No referrer data yet for this window.', 'linkpilot' ); ?></p>
-                    <?php else : ?>
-                        <table class="wp-list-table widefat fixed striped">
-                            <thead>
-                                <tr>
-                                    <th><?php esc_html_e( 'Referrer', 'linkpilot' ); ?></th>
-                                    <th style="width: 120px;"><?php esc_html_e( 'Clicks', 'linkpilot' ); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ( $referrers as $r ) : ?>
+                <div class="lp-reports-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="lp-reports-card" style="background: #fff; border: 1px solid #ccd0d4; padding: 20px;">
+                        <h2 style="margin-top: 0;"><?php esc_html_e( 'Top referrers', 'linkpilot' ); ?></h2>
+                        <?php if ( empty( $referrers ) ) : ?>
+                            <p style="color: #757575;"><?php esc_html_e( 'No referrer data yet for this window.', 'linkpilot' ); ?></p>
+                        <?php else : ?>
+                            <table class="wp-list-table widefat fixed striped">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <?php if ( preg_match( '#^https?://#i', $r->referrer ) ) : ?>
-                                                <a href="<?php echo esc_url( $r->referrer ); ?>" target="_blank" rel="noopener noreferrer nofollow">
-                                                    <?php echo esc_html( $r->referrer ); ?>
-                                                </a>
-                                            <?php else : ?>
-                                                <code><?php echo esc_html( $r->referrer ); ?></code>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?php echo esc_html( number_format_i18n( (int) $r->clicks ) ); ?></td>
+                                        <th><?php esc_html_e( 'Source', 'linkpilot' ); ?></th>
+                                        <th style="width: 80px;"><?php esc_html_e( 'Clicks', 'linkpilot' ); ?></th>
                                     </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    <?php endif; ?>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ( $referrers as $r ) : ?>
+                                        <tr>
+                                            <td>
+                                                <?php if ( preg_match( '#^https?://#i', $r->referrer ) ) : ?>
+                                                    <a href="<?php echo esc_url( $r->referrer ); ?>" target="_blank" rel="noopener noreferrer nofollow">
+                                                        <?php echo esc_html( self::host_display( $r->referrer ) ); ?>
+                                                    </a>
+                                                <?php else : ?>
+                                                    <code><?php echo esc_html( $r->referrer ); ?></code>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><?php echo esc_html( number_format_i18n( (int) $r->clicks ) ); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="lp-reports-card" style="background: #fff; border: 1px solid #ccd0d4; padding: 20px;">
+                        <h2 style="margin-top: 0;"><?php esc_html_e( 'Top countries', 'linkpilot' ); ?></h2>
+                        <?php if ( empty( $countries ) ) : ?>
+                            <p style="color: #757575;">
+                                <?php esc_html_e( 'No country data yet for this window. Requires Cloudflare or a GeoIP provider.', 'linkpilot' ); ?>
+                            </p>
+                        <?php else : ?>
+                            <table class="wp-list-table widefat fixed striped">
+                                <thead>
+                                    <tr>
+                                        <th><?php esc_html_e( 'Country', 'linkpilot' ); ?></th>
+                                        <th style="width: 80px;"><?php esc_html_e( 'Clicks', 'linkpilot' ); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ( $countries as $c ) : ?>
+                                        <tr>
+                                            <td>
+                                                <span style="font-size: 16px; margin-right: 6px;"><?php echo esc_html( self::country_flag( $c->country_code ) ); ?></span>
+                                                <code><?php echo esc_html( $c->country_code ); ?></code>
+                                            </td>
+                                            <td><?php echo esc_html( number_format_i18n( (int) $c->clicks ) ); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Convert a two-letter ISO country code to its flag emoji.
+     * Returns empty string if the code isn't a valid ISO 3166-1 alpha-2.
+     */
+    private static function country_flag( $code ) {
+        $code = strtoupper( (string) $code );
+        if ( ! preg_match( '/^[A-Z]{2}$/', $code ) ) {
+            return '';
+        }
+        // Regional Indicator Symbols: 'A' (U+0041) → U+1F1E6, offset 0x1F1A5.
+        $chars = '';
+        foreach ( str_split( $code ) as $letter ) {
+            $chars .= mb_chr( ord( $letter ) + 0x1F1A5, 'UTF-8' );
+        }
+        return $chars;
+    }
+
+    /**
+     * Shorten a scheme+host string for table display, trimming leading
+     * "https://" / "www." when it saves visual noise.
+     */
+    private static function host_display( $url ) {
+        $display = preg_replace( '#^https?://#i', '', (string) $url );
+        $display = preg_replace( '#^www\.#i', '', (string) $display );
+        return $display;
+    }
+
+    /**
+     * Convert a pair of Y-m-d dates expressed in the site timezone into UTC
+     * datetime bounds suitable for filtering the UTC-stored clicked_at column.
+     *
+     * @return array [ $from_utc, $to_utc ] as 'Y-m-d H:i:s'.
+     */
+    private static function range_to_utc_bounds( $from_date, $to_date ) {
+        $tz = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
+        try {
+            $from = new DateTimeImmutable( $from_date . ' 00:00:00', $tz );
+            $to   = ( new DateTimeImmutable( $to_date . ' 00:00:00', $tz ) )->modify( '+1 day' );
+        } catch ( Exception $e ) {
+            return array( gmdate( 'Y-m-d H:i:s', 0 ), gmdate( 'Y-m-d H:i:s' ) );
+        }
+        $utc = new DateTimeZone( 'UTC' );
+        return array(
+            $from->setTimezone( $utc )->format( 'Y-m-d H:i:s' ),
+            $to->setTimezone( $utc )->format( 'Y-m-d H:i:s' ),
+        );
+    }
+
+    /**
+     * Today's Y-m-d in the site timezone.
+     */
+    private static function today_local() {
+        $tz = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
+        return ( new DateTimeImmutable( 'now', $tz ) )->format( 'Y-m-d' );
     }
 
     /**
@@ -161,12 +261,13 @@ class LP_Reports {
             // Legacy days= param (rolling window) or default 30.
             $days      = isset( $_GET['days'] ) ? (int) $_GET['days'] : 30;
             $days      = max( 1, min( 365, $days ) );
-            $from_date = gmdate( 'Y-m-d', time() - ( $days - 1 ) * DAY_IN_SECONDS );
-            $to_date   = gmdate( 'Y-m-d' );
+            $today     = self::today_local();
+            $from_date = self::local_date_minus_days( $today, $days - 1 );
+            $to_date   = $today;
         }
         // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-        $today = gmdate( 'Y-m-d' );
+        $today = self::today_local();
         if ( $to_date > $today ) {
             $to_date = $today;
         }
@@ -174,39 +275,48 @@ class LP_Reports {
     }
 
     /**
-     * Canonical quick-range presets shown as buttons.
+     * Shift a Y-m-d date by N calendar days (site-tz-neutral calendar math).
+     */
+    private static function local_date_minus_days( $date, $days ) {
+        try {
+            $dt = new DateTimeImmutable( $date, new DateTimeZone( 'UTC' ) );
+        } catch ( Exception $e ) {
+            return $date;
+        }
+        return $dt->modify( '-' . (int) $days . ' days' )->format( 'Y-m-d' );
+    }
+
+    /**
+     * Canonical quick-range presets shown as buttons. All dates in the site tz.
      *
      * @return array<array{label:string, from:string, to:string}>
      */
     private static function preset_ranges() {
-        $today = gmdate( 'Y-m-d' );
-        $ago   = static function ( $days ) {
-            return gmdate( 'Y-m-d', time() - ( $days - 1 ) * DAY_IN_SECONDS );
-        };
-        $first_of_month = gmdate( 'Y-m-01' );
-        $last_month_end = gmdate( 'Y-m-d', strtotime( $first_of_month . ' -1 day UTC' ) );
-        $last_month_start = gmdate( 'Y-m-01', strtotime( $last_month_end . ' UTC' ) );
-        $year_start     = gmdate( 'Y-01-01' );
+        $today            = self::today_local();
+        $first_of_month   = substr( $today, 0, 7 ) . '-01';
+        $last_month_end   = self::local_date_minus_days( $first_of_month, 1 );
+        $last_month_start = substr( $last_month_end, 0, 7 ) . '-01';
+        $year_start       = substr( $today, 0, 4 ) . '-01-01';
 
         return array(
             array(
                 'label' => __( 'Last 7 days', 'linkpilot' ),
-                'from'  => $ago( 7 ),
+                'from'  => self::local_date_minus_days( $today, 6 ),
                 'to'    => $today,
             ),
             array(
                 'label' => __( 'Last 30 days', 'linkpilot' ),
-                'from'  => $ago( 30 ),
+                'from'  => self::local_date_minus_days( $today, 29 ),
                 'to'    => $today,
             ),
             array(
                 'label' => __( 'Last 90 days', 'linkpilot' ),
-                'from'  => $ago( 90 ),
+                'from'  => self::local_date_minus_days( $today, 89 ),
                 'to'    => $today,
             ),
             array(
                 'label' => __( 'Last 365 days', 'linkpilot' ),
-                'from'  => $ago( 365 ),
+                'from'  => self::local_date_minus_days( $today, 364 ),
                 'to'    => $today,
             ),
             array(
@@ -318,7 +428,8 @@ class LP_Reports {
     }
 
     /**
-     * Export entire clicks table as CSV. Streams to avoid memory pressure.
+     * Export clicks as CSV, streaming. Honors from/to range if supplied in the
+     * request (falls back to exporting the full table).
      */
     public static function handle_export() {
         if ( ! current_user_can( 'manage_options' ) ) {
@@ -326,28 +437,45 @@ class LP_Reports {
         }
         check_admin_referer( 'lp_clicks_export' );
 
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- already checked via check_admin_referer above.
+        $from_raw = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
+        $to_raw   = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+        $is_date     = static function ( $s ) {
+            return (bool) preg_match( '/^\d{4}-\d{2}-\d{2}$/', $s );
+        };
+        $has_range   = $is_date( $from_raw ) && $is_date( $to_raw );
+        $filename_tz = $has_range ? ( $from_raw . '_to_' . $to_raw ) : gmdate( 'Y-m-d' );
+        if ( $has_range ) {
+            list( $from_utc, $to_utc ) = self::range_to_utc_bounds( $from_raw, $to_raw );
+        }
+
         nocache_headers();
         header( 'Content-Type: text/csv; charset=utf-8' );
-        header( 'Content-Disposition: attachment; filename=linkpilot-clicks-' . gmdate( 'Y-m-d' ) . '.csv' );
+        header( 'Content-Disposition: attachment; filename=linkpilot-clicks-' . $filename_tz . '.csv' );
 
         $header = self::csv_row( array( 'id', 'link_id', 'link_slug', 'clicked_at', 'referrer', 'country_code', 'is_bot' ) );
         echo $header; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV-escaped by csv_row.
 
-        $offset = 0;
-        $batch  = 1000;
-        // Cache slug lookups so we don't hammer get_post() per row.
+        $offset     = 0;
+        $batch      = 1000;
         $slug_cache = array();
 
         while ( true ) {
-            $rows = LP_Clicks_DB::get_rows_batch( $offset, $batch );
+            if ( $has_range ) {
+                $rows = LP_Clicks_DB::get_rows_batch_range( $from_utc, $to_utc, $offset, $batch );
+            } else {
+                $rows = LP_Clicks_DB::get_rows_batch( $offset, $batch );
+            }
             if ( empty( $rows ) ) {
                 break;
             }
             foreach ( $rows as $row ) {
                 $lid = (int) $row['link_id'];
                 if ( ! isset( $slug_cache[ $lid ] ) ) {
-                    $post                  = get_post( $lid );
-                    $slug_cache[ $lid ]    = $post ? $post->post_name : '';
+                    $post               = get_post( $lid );
+                    $slug_cache[ $lid ] = $post ? $post->post_name : '';
                 }
                 $line = self::csv_row( array(
                     $row['id'],
