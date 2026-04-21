@@ -110,42 +110,81 @@ class LP_Clicks_DB {
      * @return array of objects { click_date, clicks }
      */
     public static function get_site_clicks_by_day( $days = 30 ) {
+        list( $from, $to ) = self::days_to_range( $days );
+        return self::get_site_clicks_by_range( $from, $to );
+    }
+
+    /**
+     * Site-wide clicks per day for an explicit UTC range.
+     *
+     * @param string $from 'Y-m-d H:i:s' UTC, inclusive.
+     * @param string $to   'Y-m-d H:i:s' UTC, exclusive upper bound (i.e. use
+     *                     the start of the day AFTER the last day you want).
+     * @return array of objects { click_date, clicks }
+     */
+    public static function get_site_clicks_by_range( $from, $to ) {
         global $wpdb;
         $table = self::get_table_name();
-        $since = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
         return $wpdb->get_results( $wpdb->prepare(
             "SELECT DATE(clicked_at) as click_date, COUNT(*) as clicks
              FROM {$table}
-             WHERE clicked_at >= %s AND is_bot = 0
+             WHERE clicked_at >= %s AND clicked_at < %s AND is_bot = 0
              GROUP BY DATE(clicked_at)
              ORDER BY click_date ASC",
-            $since
+            $from,
+            $to
         ) );
     }
 
     /**
-     * Top referrers across all links.
+     * Top referrers across all links (rolling window).
      *
      * @param int $days
      * @param int $limit
      * @return array of objects { referrer, clicks }
      */
     public static function get_site_top_referrers( $days = 30, $limit = 50 ) {
+        list( $from, $to ) = self::days_to_range( $days );
+        return self::get_site_top_referrers_range( $from, $to, $limit );
+    }
+
+    /**
+     * Top referrers across all links within an explicit UTC range.
+     *
+     * @param string $from  'Y-m-d H:i:s' UTC, inclusive.
+     * @param string $to    'Y-m-d H:i:s' UTC, exclusive.
+     * @param int    $limit
+     * @return array of objects { referrer, clicks }
+     */
+    public static function get_site_top_referrers_range( $from, $to, $limit = 50 ) {
         global $wpdb;
         $table = self::get_table_name();
-        $since = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
         $norm  = self::referrer_normalize_expr();
 
         return $wpdb->get_results( $wpdb->prepare(
             "SELECT {$norm} AS referrer, COUNT(*) as clicks
              FROM {$table}
-             WHERE clicked_at >= %s AND is_bot = 0 AND referrer != ''
+             WHERE clicked_at >= %s AND clicked_at < %s AND is_bot = 0 AND referrer != ''
              GROUP BY {$norm}
              ORDER BY clicks DESC
              LIMIT %d",
-            $since,
+            $from,
+            $to,
             $limit
         ) );
+    }
+
+    /**
+     * Convert a rolling "last N days" into an explicit [from, to) UTC range.
+     *
+     * @param int $days
+     * @return array [ $from, $to ] as 'Y-m-d H:i:s' UTC strings.
+     */
+    private static function days_to_range( $days ) {
+        $days = max( 1, (int) $days );
+        $from = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
+        $to   = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+        return array( $from, $to );
     }
 
     /**
