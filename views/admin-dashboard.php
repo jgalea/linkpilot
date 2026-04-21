@@ -40,16 +40,19 @@ $top_links = $wpdb->get_results( $wpdb->prepare(
             <div class="lp-stat-icon"><span class="dashicons dashicons-chart-bar"></span></div>
             <div class="lp-stat-value"><?php echo esc_html( number_format_i18n( $total_clicks ) ); ?></div>
             <p class="lp-stat-label"><?php esc_html_e( 'Total Clicks', 'linkpilot' ); ?></p>
+            <p class="lp-stat-sublabel"><?php esc_html_e( 'bots excluded', 'linkpilot' ); ?></p>
         </div>
         <div class="lp-stat-card">
             <div class="lp-stat-icon"><span class="dashicons dashicons-calendar-alt"></span></div>
             <div class="lp-stat-value"><?php echo esc_html( number_format_i18n( $clicks_30d ) ); ?></div>
             <p class="lp-stat-label"><?php esc_html_e( 'Clicks (30 days)', 'linkpilot' ); ?></p>
+            <p class="lp-stat-sublabel"><?php esc_html_e( 'bots excluded', 'linkpilot' ); ?></p>
         </div>
         <div class="lp-stat-card">
             <div class="lp-stat-icon"><span class="dashicons dashicons-clock"></span></div>
             <div class="lp-stat-value"><?php echo esc_html( number_format_i18n( $clicks_7d ) ); ?></div>
             <p class="lp-stat-label"><?php esc_html_e( 'Clicks (7 days)', 'linkpilot' ); ?></p>
+            <p class="lp-stat-sublabel"><?php esc_html_e( 'bots excluded', 'linkpilot' ); ?></p>
         </div>
     </div>
 

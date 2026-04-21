@@ -26,7 +26,8 @@ class LP_Clicks_DB {
             PRIMARY KEY (id),
             KEY idx_link_id (link_id),
             KEY idx_clicked_at (clicked_at),
-            KEY idx_link_date (link_id, clicked_at)
+            KEY idx_link_date (link_id, clicked_at),
+            KEY idx_is_bot_date (is_bot, clicked_at)
         ) {$charset};";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -87,18 +88,93 @@ class LP_Clicks_DB {
         global $wpdb;
         $table = self::get_table_name();
         $since = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+        $norm  = self::referrer_normalize_expr();
 
         return $wpdb->get_results( $wpdb->prepare(
-            "SELECT referrer, COUNT(*) as clicks
+            "SELECT {$norm} AS referrer, COUNT(*) as clicks
              FROM {$table}
              WHERE link_id = %d AND clicked_at >= %s AND is_bot = 0 AND referrer != ''
-             GROUP BY referrer
+             GROUP BY {$norm}
              ORDER BY clicks DESC
              LIMIT %d",
             $link_id,
             $since,
             $limit
         ) );
+    }
+
+    /**
+     * Site-wide clicks per day for a rolling window.
+     *
+     * @param int $days
+     * @return array of objects { click_date, clicks }
+     */
+    public static function get_site_clicks_by_day( $days = 30 ) {
+        global $wpdb;
+        $table = self::get_table_name();
+        $since = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+        return $wpdb->get_results( $wpdb->prepare(
+            "SELECT DATE(clicked_at) as click_date, COUNT(*) as clicks
+             FROM {$table}
+             WHERE clicked_at >= %s AND is_bot = 0
+             GROUP BY DATE(clicked_at)
+             ORDER BY click_date ASC",
+            $since
+        ) );
+    }
+
+    /**
+     * Top referrers across all links.
+     *
+     * @param int $days
+     * @param int $limit
+     * @return array of objects { referrer, clicks }
+     */
+    public static function get_site_top_referrers( $days = 30, $limit = 50 ) {
+        global $wpdb;
+        $table = self::get_table_name();
+        $since = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+        $norm  = self::referrer_normalize_expr();
+
+        return $wpdb->get_results( $wpdb->prepare(
+            "SELECT {$norm} AS referrer, COUNT(*) as clicks
+             FROM {$table}
+             WHERE clicked_at >= %s AND is_bot = 0 AND referrer != ''
+             GROUP BY {$norm}
+             ORDER BY clicks DESC
+             LIMIT %d",
+            $since,
+            $limit
+        ) );
+    }
+
+    /**
+     * SQL expression that collapses referrer variants (query string / fragment /
+     * trailing slash) into a single canonical form for GROUP BY.
+     */
+    private static function referrer_normalize_expr() {
+        return "TRIM(TRAILING '/' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(referrer, '?', 1), '#', 1))";
+    }
+
+    /**
+     * Stream raw click rows for CSV export. Returns a generator-friendly array
+     * batch. Uses OFFSET/LIMIT to avoid loading all at once.
+     *
+     * @param int $offset
+     * @param int $limit
+     * @return array
+     */
+    public static function get_rows_batch( $offset = 0, $limit = 1000 ) {
+        global $wpdb;
+        $table = self::get_table_name();
+        return $wpdb->get_results( $wpdb->prepare(
+            "SELECT id, link_id, clicked_at, referrer, country_code, is_bot
+             FROM {$table}
+             ORDER BY id ASC
+             LIMIT %d OFFSET %d",
+            $limit,
+            $offset
+        ), ARRAY_A );
     }
 
     public static function cleanup_old_data( $days = 365 ) {

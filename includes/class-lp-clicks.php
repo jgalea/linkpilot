@@ -28,17 +28,24 @@ class LP_Clicks {
     }
 
     private static function detect_country() {
-        $ip = self::get_client_ip();
-        if ( ! $ip ) {
-            return '';
+        if ( ! empty( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) {
+            $code = strtoupper( substr( sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ), 0, 2 ) );
+            if ( preg_match( '/^[A-Z]{2}$/', $code ) && 'XX' !== $code && 'T1' !== $code ) {
+                return $code;
+            }
         }
 
         if ( function_exists( 'geoip_country_code_by_name' ) ) {
-            $code = @geoip_country_code_by_name( $ip );
-            return $code ? $code : '';
+            $ip = self::get_client_ip();
+            if ( $ip ) {
+                $code = @geoip_country_code_by_name( $ip );
+                if ( $code ) {
+                    return $code;
+                }
+            }
         }
 
-        return '';
+        return (string) apply_filters( 'lp_detect_country', '', self::get_client_ip() );
     }
 
     private static function get_client_ip() {
