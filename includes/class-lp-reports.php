@@ -129,9 +129,10 @@ class LP_Reports {
                                     <?php foreach ( $referrers as $r ) : ?>
                                         <tr>
                                             <td>
-                                                <?php if ( preg_match( '#^https?://#i', $r->referrer ) ) : ?>
-                                                    <a href="<?php echo esc_url( $r->referrer ); ?>" target="_blank" rel="noopener noreferrer nofollow">
-                                                        <?php echo esc_html( self::host_display( $r->referrer ) ); ?>
+                                                <?php $host = self::host_display( $r->referrer ); ?>
+                                                <?php if ( $host && preg_match( '/^[a-z0-9.-]+\.[a-z]{2,}(:[0-9]+)?$/i', $host ) ) : ?>
+                                                    <a href="<?php echo esc_url( 'https://' . $host ); ?>" target="_blank" rel="noopener noreferrer nofollow">
+                                                        <?php echo esc_html( $host ); ?>
                                                     </a>
                                                 <?php else : ?>
                                                     <code><?php echo esc_html( $r->referrer ); ?></code>
@@ -197,13 +198,17 @@ class LP_Reports {
     }
 
     /**
-     * Shorten a scheme+host string for table display, trimming leading
-     * "https://" / "www." when it saves visual noise.
+     * Pass-through formatter for the referrer host cell. SQL already
+     * normalizes to lowercase-no-scheme-no-www; this is the seam where
+     * per-user display tweaks would live.
      */
     private static function host_display( $url ) {
-        $display = preg_replace( '#^https?://#i', '', (string) $url );
-        $display = preg_replace( '#^www\.#i', '', (string) $display );
-        return $display;
+        $url = (string) $url;
+        // Back-compat: if a raw URL slipped through (e.g. legacy rows), strip
+        // scheme/www here too so the column stays clean.
+        $url = preg_replace( '#^https?://#i', '', $url );
+        $url = preg_replace( '#^www\.#i', '', $url );
+        return strtolower( $url );
     }
 
     /**

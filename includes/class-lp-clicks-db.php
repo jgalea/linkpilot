@@ -249,13 +249,15 @@ class LP_Clicks_DB {
     }
 
     /**
-     * SQL expression that collapses a referrer URL to scheme+host only, so all
-     * paths/queries from the same source aggregate to one row. Used for the
-     * site-wide top-referrers report where the sending domain is the useful
-     * signal.
+     * SQL expression that collapses a referrer URL to a bare lowercase host,
+     * so http/https, www./apex, trailing-slash, and path variants all
+     * aggregate to one row. Used for the site-wide top-referrers report where
+     * the sending domain is the useful signal.
+     *
+     * Example: "https://www.google.com/search?q=foo" → "google.com"
      */
     private static function referrer_host_expr() {
-        return "SUBSTRING_INDEX(SUBSTRING_INDEX(referrer, '?', 1), '/', 3)";
+        return "LOWER(REGEXP_REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(referrer, '?', 1), '/', 3), '^https?://(www\\\\.)?', ''))";
     }
 
     /**
