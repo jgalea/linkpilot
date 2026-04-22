@@ -36,10 +36,35 @@ final class LinkPilot {
             LP_QR::init();
             LP_Job_Runner::init();
             LP_Scanner_Admin::init();
+            LP_Bulk_Edit::init();
+            LP_Reports::init();
+            LP_Notes::init();
+            LP_Admin_Preview::init();
+            LP_Dashboard_Widget::init();
+            LP_Backup::init();
+        }
+
+        LP_Webhook::init();
+        LP_Destinations::init();
+        LP_Conditional::init();
+        LP_REST_API::init();
+        LP_Digest::init();
+        LP_Campaigns::init();
+        LP_Disclosure::init();
+
+        if ( defined( 'WP_CLI' ) && WP_CLI ) {
+            require_once LP_PLUGIN_DIR . 'includes/class-lp-cli.php';
         }
 
         LP_Link_Fixer::init();
         LP_Editor::init();
         LP_External_Links::init();
+        LP_UTM::init();
+        LP_Expiration::init();
+        LP_Keyword_Links::init();
+        LP_Redirects::init();
+        LP_404_Log::init();
+        LP_Previews::init();
+        LP_Link_Safety::init();
     }
 }

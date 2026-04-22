@@ -3,9 +3,2037 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: LinkPilot 1.0.0\n"
-"Report-Msgid-Bugs-To: https://jeangalea.com\n"
-"POT-Creation-Date: 2026-04-14T00:00:00+00:00\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/linkpilot\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-04-15T18:54:21+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: linkpilot\n"
+
+#. Plugin Name of the plugin
+#: linkpilot.php
+#: includes/class-lp-post-type.php:29
+msgid "LinkPilot"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: linkpilot.php
+msgid "https://linkpilothq.com"
+msgstr ""
+
+#. Description of the plugin
+#: linkpilot.php
+msgid "The intelligent link manager for WordPress. Manage, track, and optimize your outbound links."
+msgstr ""
+
+#. Author of the plugin
+#: linkpilot.php
+msgid "Jean Galea"
+msgstr ""
+
+#. Author URI of the plugin
+#: linkpilot.php
+msgid "https://jeangalea.com"
+msgstr ""
+
+#: includes/class-lp-404-log.php:59
+#: includes/class-lp-404-log.php:240
+#: includes/class-lp-404-log.php:278
+#: includes/class-lp-backup.php:82
+#: includes/class-lp-backup.php:105
+#: includes/class-lp-external-links.php:71
+#: includes/class-lp-keyword-links.php:307
+#: includes/class-lp-keyword-links.php:371
+#: includes/class-lp-link-safety.php:225
+#: includes/class-lp-previews.php:196
+#: includes/class-lp-redirects.php:217
+#: includes/class-lp-redirects.php:270
+#: includes/class-lp-reports.php:185
+msgid "Unauthorized"
+msgstr ""
+
+#: includes/class-lp-404-log.php:109
+#: includes/class-lp-404-log.php:110
+#: includes/class-lp-404-log.php:129
+msgid "404 Log"
+msgstr ""
+
+#: includes/class-lp-404-log.php:134
+msgid "Delete all 404 log entries?"
+msgstr ""
+
+#: includes/class-lp-404-log.php:135
+msgid "Clear log"
+msgstr ""
+
+#. translators: %s: number of 404 entries
+#: includes/class-lp-404-log.php:142
+#, php-format
+msgid "%s unique 404 path logged."
+msgid_plural "%s unique 404 paths logged."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: retention window in days
+#: includes/class-lp-404-log.php:146
+#, php-format
+msgid "Entries older than %d days without a redirect are auto-purged daily."
+msgstr ""
+
+#: includes/class-lp-404-log.php:153
+msgid "Path"
+msgstr ""
+
+#: includes/class-lp-404-log.php:154
+#: includes/class-lp-redirects.php:178
+msgid "Hits"
+msgstr ""
+
+#: includes/class-lp-404-log.php:155
+msgid "Last seen"
+msgstr ""
+
+#: includes/class-lp-404-log.php:156
+msgid "Referer"
+msgstr ""
+
+#: includes/class-lp-404-log.php:157
+#: includes/class-lp-redirects.php:177
+#: includes/class-lp-scanner-admin.php:312
+msgid "Status"
+msgstr ""
+
+#: includes/class-lp-404-log.php:158
+#: includes/class-lp-keyword-links.php:230
+#: includes/class-lp-redirects.php:180
+#: includes/class-lp-scanner-admin.php:316
+msgid "Actions"
+msgstr ""
+
+#: includes/class-lp-404-log.php:163
+msgid "No 404s logged yet. Everything on your site is findable, or logging is disabled."
+msgstr ""
+
+#: includes/class-lp-404-log.php:184
+msgid "Redirected"
+msgstr ""
+
+#: includes/class-lp-404-log.php:201
+msgid "Create redirect"
+msgstr ""
+
+#: includes/class-lp-404-log.php:205
+msgid "Delete this entry?"
+msgstr ""
+
+#: includes/class-lp-404-log.php:206
+#: includes/class-lp-keyword-links.php:266
+#: includes/class-lp-redirects.php:203
+msgid "Delete"
+msgstr ""
+
+#: includes/class-lp-admin-preview.php:25
+msgid "Destination preview"
+msgstr ""
+
+#: includes/class-lp-admin-preview.php:37
+msgid "No destination URL set yet."
+msgstr ""
+
+#: includes/class-lp-admin-preview.php:50
+msgid "Could not fetch a preview for this destination. The URL may be unreachable, blocked, or missing OG metadata."
+msgstr ""
+
+#: includes/class-lp-admin-preview.php:73
+msgid "Cached for 7 days."
+msgstr ""
+
+#: includes/class-lp-admin.php:21
+#: includes/class-lp-admin.php:22
+msgid "Dashboard"
+msgstr ""
+
+#: includes/class-lp-admin.php:37
+msgid "Link Settings"
+msgstr ""
+
+#: includes/class-lp-admin.php:46
+msgid "Click Statistics"
+msgstr ""
+
+#: includes/class-lp-admin.php:69
+msgid "Total clicks"
+msgstr ""
+
+#: includes/class-lp-admin.php:73
+msgid "Last 30 days"
+msgstr ""
+
+#: includes/class-lp-admin.php:77
+msgid "Last 7 days"
+msgstr ""
+
+#: includes/class-lp-admin.php:84
+msgid "30-day share"
+msgstr ""
+
+#: includes/class-lp-admin.php:139
+#: includes/class-lp-redirects.php:140
+#: includes/class-lp-redirects.php:175
+msgid "Destination"
+msgstr ""
+
+#: includes/class-lp-admin.php:140
+#: views/link-meta-box.php:24
+msgid "Cloaked URL"
+msgstr ""
+
+#: includes/class-lp-admin.php:141
+msgid "Clicks (30d)"
+msgstr ""
+
+#: includes/class-lp-admin.php:142
+msgid "Health"
+msgstr ""
+
+#: includes/class-lp-admin.php:144
+msgid "QR"
+msgstr ""
+
+#: includes/class-lp-admin.php:164
+msgid "Human clicks in the last 30 days (bots excluded)"
+msgstr ""
+
+#: includes/class-lp-admin.php:177
+msgid "Download QR code"
+msgstr ""
+
+#: includes/class-lp-admin.php:185
+#: includes/class-lp-admin.php:186
+msgid "Migrate"
+msgstr ""
+
+#: includes/class-lp-backup.php:34
+#: includes/class-lp-backup.php:35
+msgid "Backup / Restore"
+msgstr ""
+
+#: includes/class-lp-backup.php:50
+msgid "LinkPilot Backup / Restore"
+msgstr ""
+
+#: includes/class-lp-backup.php:53
+msgid "Import complete."
+msgstr ""
+
+#: includes/class-lp-backup.php:55
+msgid "Import failed: invalid or unreadable JSON."
+msgstr ""
+
+#: includes/class-lp-backup.php:58
+#: includes/class-lp-csv.php:44
+msgid "Export"
+msgstr ""
+
+#: includes/class-lp-backup.php:59
+msgid "Download everything LinkPilot knows about as a single JSON file: settings, links, keyword rules, redirects. Click data is not included — export that separately from Reports."
+msgstr ""
+
+#: includes/class-lp-backup.php:63
+msgid "Download backup"
+msgstr ""
+
+#: includes/class-lp-backup.php:68
+#: includes/class-lp-csv.php:54
+msgid "Import"
+msgstr ""
+
+#: includes/class-lp-backup.php:69
+msgid "Upload a LinkPilot backup JSON. Existing links with the same slug are left untouched; new ones are created. Settings and redirects are merged."
+msgstr ""
+
+#: includes/class-lp-backup.php:74
+msgid "Import backup"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:21
+msgid "Nofollow: Yes"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:22
+msgid "Nofollow: No"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:23
+msgid "Sponsored: Yes"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:24
+msgid "Sponsored: No"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:25
+msgid "New window: Yes"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:26
+msgid "New window: No"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:27
+msgid "Redirect: 301"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:28
+msgid "Redirect: 302"
+msgstr ""
+
+#: includes/class-lp-bulk-edit.php:29
+msgid "Redirect: 307"
+msgstr ""
+
+#. translators: %d: number of links updated
+#: includes/class-lp-bulk-edit.php:95
+#, php-format
+msgid "%d link updated."
+msgid_plural "%d links updated."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-lp-campaigns.php:43
+#: includes/class-lp-campaigns.php:51
+msgid "Campaigns"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:44
+msgid "Campaign"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:45
+msgid "Search campaigns"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:46
+msgid "All campaigns"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:47
+msgid "Edit campaign"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:48
+msgid "Update campaign"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:49
+msgid "Add campaign"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:50
+msgid "New campaign name"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:136
+msgid "Campaign UTM defaults (optional)"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:137
+msgid "These apply to every link in this campaign unless the link sets its own UTM override. Settings-level defaults are used if both are blank."
+msgstr ""
+
+#: includes/class-lp-campaigns.php:150
+msgid "Campaign UTM defaults"
+msgstr ""
+
+#: includes/class-lp-campaigns.php:160
+msgid "Only filled-in fields are applied. Per-link overrides on the link edit screen take priority."
+msgstr ""
+
+#: includes/class-lp-conditional.php:155
+msgid "Conditional redirects"
+msgstr ""
+
+#: includes/class-lp-conditional.php:171
+msgid "Rules are evaluated top-to-bottom. First match wins. Falls through to the default destination if no rule matches."
+msgstr ""
+
+#: includes/class-lp-conditional.php:176
+msgid "If"
+msgstr ""
+
+#: includes/class-lp-conditional.php:177
+msgid "Operator"
+msgstr ""
+
+#: includes/class-lp-conditional.php:178
+msgid "Value"
+msgstr ""
+
+#: includes/class-lp-conditional.php:179
+msgid "Redirect to"
+msgstr ""
+
+#: includes/class-lp-conditional.php:189
+msgid "Device"
+msgstr ""
+
+#: includes/class-lp-conditional.php:190
+msgid "Country"
+msgstr ""
+
+#: includes/class-lp-conditional.php:191
+#: includes/class-lp-reports.php:82
+msgid "Referrer"
+msgstr ""
+
+#: includes/class-lp-conditional.php:192
+msgid "Cookie"
+msgstr ""
+
+#: includes/class-lp-conditional.php:199
+msgid "e.g. US, US,CA — or cookie name"
+msgstr ""
+
+#: includes/class-lp-conditional.php:209
+msgid "Operators"
+msgstr ""
+
+#: includes/class-lp-csv.php:17
+#: includes/class-lp-csv.php:18
+msgid "Import / Export"
+msgstr ""
+
+#: includes/class-lp-csv.php:30
+msgid "Import / Export Links"
+msgstr ""
+
+#. translators: %d: number of links imported
+#: includes/class-lp-csv.php:37
+#, php-format
+msgid "%d link imported successfully."
+msgid_plural "%d links imported successfully."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-lp-csv.php:45
+msgid "Download all your links as a CSV file."
+msgstr ""
+
+#: includes/class-lp-csv.php:49
+msgid "Export CSV"
+msgstr ""
+
+#: includes/class-lp-csv.php:55
+msgid "Upload a CSV file with columns: title, slug, destination_url, redirect_type, nofollow, sponsored, new_window, category"
+msgstr ""
+
+#: includes/class-lp-csv.php:60
+msgid "Import CSV"
+msgstr ""
+
+#: includes/class-lp-csv.php:139
+msgid "File upload failed."
+msgstr ""
+
+#: includes/class-lp-csv.php:144
+msgid "Invalid upload."
+msgstr ""
+
+#: includes/class-lp-csv.php:149
+msgid "Could not read file."
+msgstr ""
+
+#: includes/class-lp-csv.php:157
+msgid "Empty file."
+msgstr ""
+
+#: includes/class-lp-dashboard-widget.php:27
+msgid "LinkPilot — Last 30 days"
+msgstr ""
+
+#: includes/class-lp-dashboard-widget.php:43
+msgid "clicks in the last 30 days"
+msgstr ""
+
+#: includes/class-lp-dashboard-widget.php:52
+#: includes/class-lp-digest.php:121
+msgid "Top links"
+msgstr ""
+
+#: includes/class-lp-dashboard-widget.php:56
+#: includes/class-lp-post-type.php:19
+#: views/admin-dashboard.php:127
+msgid "Link"
+msgstr ""
+
+#: includes/class-lp-dashboard-widget.php:57
+#: includes/class-lp-digest.php:102
+#: includes/class-lp-reports.php:83
+#: views/admin-dashboard.php:128
+msgid "Clicks"
+msgstr ""
+
+#: includes/class-lp-dashboard-widget.php:77
+msgid "View full reports"
+msgstr ""
+
+#: includes/class-lp-destinations.php:141
+msgid "Multiple destinations / A-B test"
+msgstr ""
+
+#: includes/class-lp-destinations.php:158
+msgid "Optional. Leave mode set to \"Off\" to use the single Destination URL above. When on, this overrides that URL."
+msgstr ""
+
+#: includes/class-lp-destinations.php:163
+msgid "Mode"
+msgstr ""
+
+#: includes/class-lp-destinations.php:165
+msgid "Off"
+msgstr ""
+
+#: includes/class-lp-destinations.php:166
+msgid "Fallback (primary → backup if primary breaks)"
+msgstr ""
+
+#: includes/class-lp-destinations.php:167
+msgid "A/B split (random weighted choice)"
+msgstr ""
+
+#: includes/class-lp-destinations.php:175
+#: views/link-meta-box.php:17
+msgid "Destination URL"
+msgstr ""
+
+#: includes/class-lp-destinations.php:176
+msgid "Weight"
+msgstr ""
+
+#: includes/class-lp-destinations.php:195
+msgid "Fallback mode: order matters — the first URL is tried first, and LinkPilot moves to the next if health checks show the previous is broken. Split mode: weight = relative share of traffic. Equal weights = even split."
+msgstr ""
+
+#: includes/class-lp-digest.php:42
+msgid "Once Weekly"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-lp-digest.php:67
+#, php-format
+msgid "[LinkPilot] Weekly click digest — %s"
+msgstr ""
+
+#: includes/class-lp-digest.php:93
+msgid "LinkPilot weekly digest"
+msgstr ""
+
+#. translators: 1: week start date, 2: week end date
+#: includes/class-lp-digest.php:96
+#, php-format
+msgid "Summary for %1$s — %2$s."
+msgstr ""
+
+#. translators: 1: arrow, 2: percent delta, 3: previous count
+#: includes/class-lp-digest.php:109
+#, php-format
+msgid "%1$s %2$d%% vs the previous 7 days (%3$s)"
+msgstr ""
+
+#: includes/class-lp-digest.php:115
+msgid "No comparison — no clicks last period."
+msgstr ""
+
+#: includes/class-lp-digest.php:135
+#: includes/class-lp-reports.php:75
+msgid "Top referrers"
+msgstr ""
+
+#: includes/class-lp-digest.php:147
+msgid "404s"
+msgstr ""
+
+#. translators: %d: count of new 404 paths
+#: includes/class-lp-digest.php:151
+#, php-format
+msgid "%d new 404 path logged."
+msgid_plural "%d new 404 paths logged."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-lp-digest.php:153
+msgid "Review"
+msgstr ""
+
+#. translators: %s: settings URL
+#: includes/class-lp-digest.php:161
+#, php-format
+msgid "Turn this digest off in <a href=\"%s\">LinkPilot settings</a>."
+msgstr ""
+
+#: includes/class-lp-expiration.php:147
+msgid "Expiration"
+msgstr ""
+
+#: includes/class-lp-expiration.php:175
+msgid "Expires at (UTC)"
+msgstr ""
+
+#: includes/class-lp-expiration.php:178
+msgid "Leave blank for no expiry."
+msgstr ""
+
+#: includes/class-lp-expiration.php:181
+msgid "When expired"
+msgstr ""
+
+#: includes/class-lp-expiration.php:183
+msgid "Disable the link (returns 404)"
+msgstr ""
+
+#: includes/class-lp-expiration.php:184
+msgid "Redirect to a fallback URL"
+msgstr ""
+
+#: includes/class-lp-expiration.php:188
+msgid "Fallback URL"
+msgstr ""
+
+#: includes/class-lp-external-links.php:50
+msgid "LinkPilot can replace WP External Links"
+msgstr ""
+
+#. translators: 1: LinkPilot settings URL, 2: plugins page URL
+#: includes/class-lp-external-links.php:54
+#, php-format
+msgid "LinkPilot now handles rel and target attributes on outbound links. <a href=\"%1$s\">Enable External Links in LinkPilot settings</a>, then <a href=\"%2$s\">deactivate WP External Links</a>."
+msgstr ""
+
+#: includes/class-lp-external-links.php:60
+#: includes/class-lp-scanner-admin.php:335
+#: includes/class-lp-scanner-admin.php:346
+msgid "Dismiss"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:182
+#: includes/class-lp-keyword-links.php:183
+#: includes/class-lp-keyword-links.php:208
+msgid "Keyword Links"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:209
+msgid "Automatically turn a keyword into a cloaked link wherever it appears in your posts. The first matching occurrences are linked (up to the per-rule max)."
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:218
+msgid "Enable keyword auto-linking on post content."
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:222
+msgid "Rules"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:226
+msgid "Keyword"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:227
+msgid "Destination link"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:228
+msgid "Case-sensitive"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:229
+msgid "Max per post"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:265
+msgid "Delete this rule?"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:275
+msgid "New keyword"
+msgstr ""
+
+#: includes/class-lp-keyword-links.php:296
+msgid "Save Rules"
+msgstr ""
+
+#: includes/class-lp-link-health.php:171
+#: includes/class-lp-scanner-admin.php:244
+#: includes/class-lp-scanner-admin.php:294
+#: views/admin-dashboard.php:78
+msgid "Healthy"
+msgstr ""
+
+#: includes/class-lp-link-health.php:172
+#: includes/class-lp-scanner-admin.php:456
+msgid "Broken"
+msgstr ""
+
+#: includes/class-lp-link-health.php:173
+#: includes/class-lp-scanner-admin.php:252
+#: views/admin-dashboard.php:86
+msgid "Server Error"
+msgstr ""
+
+#: includes/class-lp-link-health.php:174
+msgid "Error"
+msgstr ""
+
+#: includes/class-lp-link-health.php:175
+msgid "No URL"
+msgstr ""
+
+#: includes/class-lp-link-health.php:176
+msgid "Unknown"
+msgstr ""
+
+#: includes/class-lp-link-health.php:177
+#: includes/class-lp-scanner-admin.php:260
+#: views/admin-dashboard.php:90
+msgid "Unchecked"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:168
+msgid "No destination URL"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:170
+msgid "On your blocklist"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:172
+msgid "Fetch failed"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:174
+msgid "Broken (HTTP 4xx)"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:176
+#: includes/class-lp-scanner-admin.php:290
+msgid "Server error (5xx)"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:178
+msgid "Parked / for-sale domain"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:180
+msgid "Redirects to a different domain"
+msgstr ""
+
+#: includes/class-lp-link-safety.php:197
+msgid "Safety"
+msgstr ""
+
+#: includes/class-lp-notes.php:28
+msgid "Notes (admin only)"
+msgstr ""
+
+#: includes/class-lp-notes.php:40
+msgid "Contact info, commission terms, reminders — anything you need. Visible only in the admin."
+msgstr ""
+
+#: includes/class-lp-post-type.php:18
+msgid "Links"
+msgstr ""
+
+#: includes/class-lp-post-type.php:20
+#: includes/class-lp-post-type.php:21
+msgid "Add New Link"
+msgstr ""
+
+#: includes/class-lp-post-type.php:22
+msgid "Edit Link"
+msgstr ""
+
+#: includes/class-lp-post-type.php:23
+msgid "New Link"
+msgstr ""
+
+#: includes/class-lp-post-type.php:24
+msgid "View Link"
+msgstr ""
+
+#: includes/class-lp-post-type.php:25
+msgid "Search Links"
+msgstr ""
+
+#: includes/class-lp-post-type.php:26
+msgid "No links found"
+msgstr ""
+
+#: includes/class-lp-post-type.php:27
+msgid "No links found in trash"
+msgstr ""
+
+#: includes/class-lp-post-type.php:28
+msgid "All Links"
+msgstr ""
+
+#: includes/class-lp-post-type.php:54
+msgid "Link Categories"
+msgstr ""
+
+#: includes/class-lp-post-type.php:55
+msgid "Link Category"
+msgstr ""
+
+#: includes/class-lp-post-type.php:56
+msgid "Add New Category"
+msgstr ""
+
+#: includes/class-lp-post-type.php:57
+msgid "Edit Category"
+msgstr ""
+
+#: includes/class-lp-post-type.php:58
+msgid "Search Categories"
+msgstr ""
+
+#: includes/class-lp-post-type.php:59
+msgid "All Categories"
+msgstr ""
+
+#: includes/class-lp-post-type.php:71
+msgid "Link Tags"
+msgstr ""
+
+#: includes/class-lp-post-type.php:72
+msgid "Link Tag"
+msgstr ""
+
+#: includes/class-lp-post-type.php:73
+msgid "Add New Tag"
+msgstr ""
+
+#: includes/class-lp-post-type.php:74
+msgid "Edit Tag"
+msgstr ""
+
+#: includes/class-lp-post-type.php:75
+msgid "Search Tags"
+msgstr ""
+
+#: includes/class-lp-post-type.php:76
+msgid "All Tags"
+msgstr ""
+
+#: includes/class-lp-redirects.php:95
+#: includes/class-lp-redirects.php:96
+#: includes/class-lp-scanner-admin.php:293
+msgid "Redirects"
+msgstr ""
+
+#: includes/class-lp-redirects.php:110
+msgid "Site Redirects"
+msgstr ""
+
+#: includes/class-lp-redirects.php:115
+msgid "Source path and destination are required."
+msgstr ""
+
+#: includes/class-lp-redirects.php:121
+msgid "Invalid regex pattern — redirect not saved. Pattern:"
+msgstr ""
+
+#: includes/class-lp-redirects.php:125
+msgid "Redirect arbitrary URLs on your site to new destinations. Useful after URL changes, site restructures, or retiring old content. Cloaked LinkPilot links are handled separately — add them under Links instead."
+msgstr ""
+
+#: includes/class-lp-redirects.php:127
+#: includes/class-lp-redirects.php:167
+msgid "Add redirect"
+msgstr ""
+
+#: includes/class-lp-redirects.php:133
+msgid "Source path"
+msgstr ""
+
+#: includes/class-lp-redirects.php:136
+msgid "Leading slash. Exact: \"/old-post/\". Prefix: \"/blog/\". Regex: \"^/blog/(.+)$\"."
+msgstr ""
+
+#: includes/class-lp-redirects.php:143
+msgid "Absolute URL or site-relative path. Regex mode supports $1, $2 back-references."
+msgstr ""
+
+#: includes/class-lp-redirects.php:147
+msgid "Match type"
+msgstr ""
+
+#: includes/class-lp-redirects.php:157
+msgid "HTTP status"
+msgstr ""
+
+#: includes/class-lp-redirects.php:170
+msgid "Existing redirects"
+msgstr ""
+
+#: includes/class-lp-redirects.php:174
+msgid "Source"
+msgstr ""
+
+#: includes/class-lp-redirects.php:176
+msgid "Match"
+msgstr ""
+
+#: includes/class-lp-redirects.php:179
+msgid "Last hit"
+msgstr ""
+
+#: includes/class-lp-redirects.php:185
+msgid "No redirects yet."
+msgstr ""
+
+#: includes/class-lp-redirects.php:202
+msgid "Delete this redirect?"
+msgstr ""
+
+#: includes/class-lp-reports.php:26
+#: includes/class-lp-reports.php:27
+msgid "Reports"
+msgstr ""
+
+#: includes/class-lp-reports.php:47
+msgid "LinkPilot Reports"
+msgstr ""
+
+#: includes/class-lp-reports.php:48
+msgid "Export all clicks as CSV"
+msgstr ""
+
+#: includes/class-lp-reports.php:54
+msgid "Window:"
+msgstr ""
+
+#. translators: %d: number of days
+#: includes/class-lp-reports.php:60
+#, php-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-lp-reports.php:65
+msgid "Apply"
+msgstr ""
+
+#: includes/class-lp-reports.php:70
+msgid "Clicks per day"
+msgstr ""
+
+#: includes/class-lp-reports.php:77
+msgid "No referrer data yet for this window."
+msgstr ""
+
+#: includes/class-lp-reports.php:175
+msgid "Daily clicks chart"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:104
+#: includes/class-lp-scanner-admin.php:105
+#: includes/class-lp-scanner-admin.php:236
+#: includes/class-lp-settings.php:83
+msgid "Link Scanner"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:112
+#: includes/class-lp-scanner-admin.php:113
+#: includes/class-lp-scanner-admin.php:124
+msgid "Canonicalize Redirects"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:126
+msgid "URLs in your posts that redirect to a different final destination. Click \"Canonicalize\" to rewrite the original URL to the final URL across every post that uses it — post revisions are kept automatically. This fixes HTTPS migration leftovers and URL restructuring in one pass."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:131
+msgid "No redirects detected yet. Run the Link Scanner first from the Link Scanner page."
+msgstr ""
+
+#. translators: %d: number of redirects
+#: includes/class-lp-scanner-admin.php:139
+#, php-format
+msgid "Canonicalize all %d redirects"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:144
+msgid "Processes one URL per second to avoid DB spikes. You can leave the page running."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:153
+msgid "Original URL"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:155
+msgid "Final URL"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:156
+msgid "Hops"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:157
+#: includes/class-lp-scanner-admin.php:314
+msgid "Posts"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:158
+msgid "Action"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:170
+msgid "Canonicalize"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:185
+msgid "Rewrite this URL across every post that uses it?"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:191
+#: includes/class-lp-scanner-admin.php:390
+msgid "Updated"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:194
+msgid "Retry"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:202
+msgid "Rewrite ALL redirected URLs to their final destinations across every post on this site? Post revisions are kept. This may modify many posts."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:204
+msgid "Canonicalizing…"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:208
+msgid "Rewriting redirected URLs"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:210
+msgid "Done (reload to see remaining)"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:238
+msgid "Scans outbound links in your post content and reports any that are broken or unreachable. LinkPilot cloaked URLs are excluded — their destinations are checked separately by the link health monitor."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:248
+#: views/admin-dashboard.php:82
+msgid "Broken / Error"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:256
+msgid "Sites that refused automated checks (e.g. Cloudflare 403). Visible to humans, not necessarily broken."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:256
+msgid "Blocked (refused)"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:266
+msgid "Scan all posts now"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:269
+msgid "Re-check broken links"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:272
+msgid "Background scan runs hourly, 20 posts and 20 URLs per tick."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:280
+msgid "Broken & unreachable URLs"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:288
+msgid "All broken/error"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:289
+msgid "Broken (4xx)"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:291
+msgid "Unreachable"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:292
+msgid "Blocked (refused automated check)"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:295
+msgid "Dismissed"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:297
+msgid "Filter by host (e.g. example.com)"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:298
+msgid "Search URL or error"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:299
+msgid "Filter"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:300
+msgid "Download CSV"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:305
+msgid "No broken links found yet. Run \"Scan all posts now\" to start."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:311
+msgid "URL"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:313
+msgid "Code"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:315
+msgid "Last checked"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:333
+#: includes/class-lp-scanner-admin.php:342
+msgid "Rewrite"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:334
+#: includes/class-lp-scanner-admin.php:344
+msgid "Unlink"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:342
+msgid "Replace the URL across every post that uses it. Post revisions are kept."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:343
+#: includes/class-lp-scanner-admin.php:345
+msgid " · "
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:344
+msgid "Remove the link wrapper, keep the visible text. Post revisions are kept."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:346
+msgid "Hide from the broken list; URL stays in your content untouched."
+msgstr ""
+
+#. translators: %s: number of broken URLs
+#: includes/class-lp-scanner-admin.php:356
+#, php-format
+msgid "%s item"
+msgid_plural "%s items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-lp-scanner-admin.php:382
+msgid "Replace this URL with:"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:385
+#: includes/class-lp-scanner-admin.php:399
+msgid "…"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:389
+msgid "rewritten"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:390
+#: includes/class-lp-scanner-admin.php:404
+msgid "post(s)."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:397
+msgid "Remove the link wrapper from this URL in every post? Link text stays; post revisions are kept."
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:403
+msgid "unlinked"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:404
+msgid "Unlinked in"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:422
+msgid "Scanning…"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:426
+msgid "Extracting URLs from posts"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:429
+#: includes/class-lp-scanner-admin.php:444
+msgid "Done (reload for results)"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:437
+#: views/admin-dashboard.php:107
+msgid "Checking…"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:441
+msgid "Checking URL statuses"
+msgstr ""
+
+#: includes/class-lp-scanner-admin.php:467
+msgid "Not scanned yet"
+msgstr ""
+
+#: includes/class-lp-settings.php:29
+#: views/admin-settings.php:5
+msgid "LinkPilot Settings"
+msgstr ""
+
+#: includes/class-lp-settings.php:30
+msgid "Settings"
+msgstr ""
+
+#: includes/class-lp-settings.php:38
+#: views/admin-wizard.php:51
+msgid "Link Defaults"
+msgstr ""
+
+#: includes/class-lp-settings.php:40
+#: views/admin-wizard.php:55
+msgid "URL Prefix"
+msgstr ""
+
+#: includes/class-lp-settings.php:41
+msgid "The path segment used for all cloaked links. Changing this rewrites your URLs — keep old URLs working by leaving it at \"go\" unless you have a reason."
+msgstr ""
+
+#: includes/class-lp-settings.php:43
+msgid "Default Redirect Type"
+msgstr ""
+
+#: includes/class-lp-settings.php:48
+msgid "307 is the safest default for affiliate links — search engines treat the destination as temporary so no SEO signal leaks. Use 301 only if you want Google to associate your link with the destination. Overridable per link."
+msgstr ""
+
+#: includes/class-lp-settings.php:50
+msgid "Default Nofollow"
+msgstr ""
+
+#: includes/class-lp-settings.php:51
+msgid "Adds rel=\"nofollow\" so search engines don't pass link equity to the destination. Recommended for affiliate and sponsored links. Overridable per link."
+msgstr ""
+
+#: includes/class-lp-settings.php:53
+msgid "Default Sponsored"
+msgstr ""
+
+#: includes/class-lp-settings.php:54
+msgid "Adds rel=\"sponsored\" to disclose paid relationships to Google. Required for affiliate links under FTC and Google guidelines. Overridable per link."
+msgstr ""
+
+#: includes/class-lp-settings.php:56
+msgid "Default Open in New Window"
+msgstr ""
+
+#: includes/class-lp-settings.php:57
+msgid "Adds target=\"_blank\" so clicked links open in a new tab. Keeps visitors on your site. Overridable per link."
+msgstr ""
+
+#: includes/class-lp-settings.php:59
+msgid "Default Pass Query Strings"
+msgstr ""
+
+#: includes/class-lp-settings.php:60
+msgid "Forwards ?params from the cloaked URL to the destination (useful for appending campaign IDs). Off by default to prevent affiliate cookie-stuffing attacks."
+msgstr ""
+
+#: includes/class-lp-settings.php:63
+msgid "Click Tracking"
+msgstr ""
+
+#: includes/class-lp-settings.php:65
+msgid "Enable Click Tracking"
+msgstr ""
+
+#: includes/class-lp-settings.php:66
+msgid "Records every click in the LinkPilot database. Needed for the dashboard click stats."
+msgstr ""
+
+#: includes/class-lp-settings.php:68
+msgid "Disable IP Collection (GDPR)"
+msgstr ""
+
+#: includes/class-lp-settings.php:69
+msgid "When enabled, LinkPilot never stores visitor IP addresses. Country is derived at click time then the IP is discarded. Required for GDPR compliance without a consent banner."
+msgstr ""
+
+#: includes/class-lp-settings.php:71
+msgid "Excluded Bots (one per line)"
+msgstr ""
+
+#: includes/class-lp-settings.php:72
+msgid "User agent fragments that mark a click as bot traffic (bot clicks are recorded but excluded from stats). One pattern per line, case-insensitive substring match. Add custom crawlers you want to ignore."
+msgstr ""
+
+#: includes/class-lp-settings.php:75
+msgid "Modules"
+msgstr ""
+
+#: includes/class-lp-settings.php:77
+msgid "Enable Link Fixer"
+msgstr ""
+
+#: includes/class-lp-settings.php:78
+msgid "Frontend JS that syncs rel, target and class attributes on cloaked links in your content to match your current per-link settings. Lets you update \"nofollow\" or \"open in new window\" across every post without editing them. Costs one AJAX request per page load. Safe to disable if you configure link attributes once and rarely change them."
+msgstr ""
+
+#: includes/class-lp-settings.php:80
+msgid "QR Code Column"
+msgstr ""
+
+#: includes/class-lp-settings.php:81
+msgid "Shows a QR download icon on the link list so you can get a printable QR code for any cloaked URL. Uses api.qrserver.com to generate on demand."
+msgstr ""
+
+#: includes/class-lp-settings.php:84
+msgid "Scans outbound URLs in post content and flags broken or unreachable links. Runs hourly in the background; paced so it never hammers your host or the destinations. Cloaked LinkPilot URLs are excluded."
+msgstr ""
+
+#: includes/class-lp-settings.php:86
+msgid "Scanner Allowed Domains"
+msgstr ""
+
+#: includes/class-lp-settings.php:87
+msgid "Domains to skip when scanning outbound links. One per line, no http://. Subdomains match automatically (example.com also matches blog.example.com)."
+msgstr ""
+
+#: includes/class-lp-settings.php:89
+msgid "Scanner URL Exclusion Patterns"
+msgstr ""
+
+#: includes/class-lp-settings.php:90
+msgid "URL substrings or regex patterns to skip. One per line. Wrap in slashes for regex (e.g. /^https:\\/\\/api\\./). Plain text matches substring, case-insensitive."
+msgstr ""
+
+#: includes/class-lp-settings.php:92
+msgid "Scanner Post Types"
+msgstr ""
+
+#: includes/class-lp-settings.php:93
+msgid "Comma-separated post types to scan. Defaults to \"post,page\". Example: \"post,page,product\"."
+msgstr ""
+
+#: includes/class-lp-settings.php:95
+msgid "Scanner Containers"
+msgstr ""
+
+#: includes/class-lp-settings.php:96
+msgid "Content sources to scan. Comma-separated: content (post body), comments (approved comments), meta (standard custom fields), acf (Advanced Custom Fields). Default: content."
+msgstr ""
+
+#: includes/class-lp-settings.php:98
+msgid "Scanner Weekly Digest Email"
+msgstr ""
+
+#: includes/class-lp-settings.php:99
+msgid "Send a weekly email summarizing broken links found in the last 7 days. Sent to the site admin email unless a custom recipient is set."
+msgstr ""
+
+#: includes/class-lp-settings.php:101
+msgid "Scanner Real-Time Break Alert"
+msgstr ""
+
+#: includes/class-lp-settings.php:102
+msgid "Email immediately when a previously healthy URL starts failing. High-signal but can be chatty if you have many URLs."
+msgstr ""
+
+#: includes/class-lp-settings.php:104
+msgid "Scanner Email Recipient"
+msgstr ""
+
+#: includes/class-lp-settings.php:105
+msgid "Optional override for the admin email. Leave blank to use the site admin email."
+msgstr ""
+
+#: includes/class-lp-settings.php:108
+msgid "External Links"
+msgstr ""
+
+#: includes/class-lp-settings.php:110
+msgid "Enable External Link Processing"
+msgstr ""
+
+#: includes/class-lp-settings.php:111
+msgid "Scans post content and adds the selected rel / target attributes to outbound links (any &lt;a&gt; pointing to a different domain). Cloaked LinkPilot links are left alone — they already use per-link settings."
+msgstr ""
+
+#: includes/class-lp-settings.php:113
+msgid "Add rel=\"nofollow\""
+msgstr ""
+
+#: includes/class-lp-settings.php:114
+msgid "Tells search engines not to pass link equity to external destinations. Recommended on by default."
+msgstr ""
+
+#: includes/class-lp-settings.php:116
+msgid "Add rel=\"sponsored\""
+msgstr ""
+
+#: includes/class-lp-settings.php:117
+msgid "Marks paid/affiliate relationships. Only enable site-wide if all outbound links are sponsored — otherwise set per link via the allowlist."
+msgstr ""
+
+#: includes/class-lp-settings.php:119
+msgid "Add rel=\"ugc\""
+msgstr ""
+
+#: includes/class-lp-settings.php:120
+msgid "Marks user-generated content links. Useful if your posts embed links contributed by readers."
+msgstr ""
+
+#: includes/class-lp-settings.php:122
+msgid "Add rel=\"noopener\""
+msgstr ""
+
+#: includes/class-lp-settings.php:123
+msgid "Prevents external pages from accessing window.opener when opened via target=\"_blank\". Browser-safety best practice."
+msgstr ""
+
+#: includes/class-lp-settings.php:125
+msgid "Add rel=\"noreferrer\""
+msgstr ""
+
+#: includes/class-lp-settings.php:126
+msgid "Hides the referring URL from the destination. Protects reader privacy."
+msgstr ""
+
+#: includes/class-lp-settings.php:128
+#: views/admin-wizard.php:87
+msgid "Open in new window"
+msgstr ""
+
+#: includes/class-lp-settings.php:129
+msgid "Sets target on outbound links. Keeps readers on your site when they click away."
+msgstr ""
+
+#: includes/class-lp-settings.php:131
+msgid "Allowed Domains (one per line)"
+msgstr ""
+
+#: includes/class-lp-settings.php:132
+msgid "Domains treated as internal — no rel / target processing. One per line, without http://. Subdomains match automatically (e.g. \"example.com\" also matches \"blog.example.com\")."
+msgstr ""
+
+#: includes/class-lp-settings.php:134
+msgid "Excluded CSS Classes (one per line)"
+msgstr ""
+
+#: includes/class-lp-settings.php:135
+msgid "Leave a link alone if it has any of these CSS classes. Useful for buttons or widgets you manage manually."
+msgstr ""
+
+#: includes/class-lp-settings.php:138
+msgid "UTM Parameters"
+msgstr ""
+
+#: includes/class-lp-settings.php:140
+msgid "Enable UTM Parameters"
+msgstr ""
+
+#: includes/class-lp-settings.php:141
+msgid "Appends configurable UTM parameters to every outbound destination at redirect time. Per-link overrides live on the link edit screen."
+msgstr ""
+
+#: includes/class-lp-settings.php:143
+msgid "Existing UTMs Behavior"
+msgstr ""
+
+#: includes/class-lp-settings.php:148
+msgid "What to do when the destination URL already has UTM parameters."
+msgstr ""
+
+#: includes/class-lp-settings.php:150
+msgid "Default utm_source"
+msgstr ""
+
+#: includes/class-lp-settings.php:151
+msgid "The referrer — where traffic is coming from. Usually your site name or domain."
+msgstr ""
+
+#: includes/class-lp-settings.php:153
+msgid "Default utm_medium"
+msgstr ""
+
+#: includes/class-lp-settings.php:154
+msgid "The type of traffic. Common values: affiliate, blog, newsletter."
+msgstr ""
+
+#: includes/class-lp-settings.php:156
+msgid "Default utm_campaign"
+msgstr ""
+
+#: includes/class-lp-settings.php:157
+msgid "The campaign name. Leave blank to set per-link only."
+msgstr ""
+
+#: includes/class-lp-settings.php:159
+msgid "Default utm_term"
+msgstr ""
+
+#: includes/class-lp-settings.php:160
+msgid "Usually a keyword for paid search. Often left blank for affiliate links."
+msgstr ""
+
+#: includes/class-lp-settings.php:162
+msgid "Default utm_content"
+msgstr ""
+
+#: includes/class-lp-settings.php:163
+msgid "Differentiates similar content or links within the same campaign. Often set per link."
+msgstr ""
+
+#: includes/class-lp-settings.php:166
+msgid "404 Logger"
+msgstr ""
+
+#: includes/class-lp-settings.php:168
+msgid "Log 404s"
+msgstr ""
+
+#: includes/class-lp-settings.php:169
+msgid "Records every 404 page request so you can create one-click redirects from the 404 Log page. Bot traffic is filtered out automatically."
+msgstr ""
+
+#: includes/class-lp-settings.php:172
+msgid "Link Safety"
+msgstr ""
+
+#: includes/class-lp-settings.php:174
+msgid "Blocked Domains"
+msgstr ""
+
+#: includes/class-lp-settings.php:175
+msgid "One host per line. Any link pointing to a blocked domain (or a subdomain of it) will be flagged in the Safety column on the Links list."
+msgstr ""
+
+#: includes/class-lp-settings.php:178
+msgid "Webhook"
+msgstr ""
+
+#: includes/class-lp-settings.php:180
+msgid "Webhook URL"
+msgstr ""
+
+#: includes/class-lp-settings.php:181
+msgid "POST a JSON payload to this URL after every click. Leave blank to disable. Delivery is scheduled asynchronously so the redirect stays fast."
+msgstr ""
+
+#: includes/class-lp-settings.php:183
+msgid "Signing Secret"
+msgstr ""
+
+#: includes/class-lp-settings.php:184
+msgid "If set, each delivery includes a X-LinkPilot-Signature header (sha256 HMAC of the body). Use this to verify the request is genuinely from your site."
+msgstr ""
+
+#: includes/class-lp-settings.php:186
+msgid "Send Bot Clicks"
+msgstr ""
+
+#: includes/class-lp-settings.php:187
+msgid "Whether to deliver webhooks for clicks detected as bot traffic. Off by default."
+msgstr ""
+
+#: includes/class-lp-settings.php:190
+msgid "Weekly Digest"
+msgstr ""
+
+#: includes/class-lp-settings.php:192
+msgid "Enable Weekly Digest"
+msgstr ""
+
+#: includes/class-lp-settings.php:193
+msgid "Emails a click summary every Monday morning: totals, top links, top referrers, new 404s."
+msgstr ""
+
+#: includes/class-lp-settings.php:195
+msgid "Digest Recipient"
+msgstr ""
+
+#: includes/class-lp-settings.php:196
+msgid "Email address. Leave blank to use the site admin email."
+msgstr ""
+
+#: includes/class-lp-settings.php:199
+msgid "Affiliate Disclosure"
+msgstr ""
+
+#: includes/class-lp-settings.php:201
+msgid "Enable Auto-Disclosure"
+msgstr ""
+
+#: includes/class-lp-settings.php:202
+msgid "When a post contains at least one cloaked sponsored link, prepend (or append) a disclosure notice automatically."
+msgstr ""
+
+#: includes/class-lp-settings.php:204
+msgid "Position"
+msgstr ""
+
+#: includes/class-lp-settings.php:205
+msgid "Where to inject the disclosure in post content."
+msgstr ""
+
+#: includes/class-lp-settings.php:207
+msgid "Disclosure Text"
+msgstr ""
+
+#: includes/class-lp-settings.php:208
+msgid "HTML allowed (basic tags only). Leave blank for the default FTC-friendly wording."
+msgstr ""
+
+#: includes/class-lp-settings.php:213
+msgid "POST click data to an external URL for integrations with Zapier, n8n, Make, or your own webhook receiver."
+msgstr ""
+
+#: includes/class-lp-settings.php:217
+msgid "Weekly email summary of link activity. Opt-in."
+msgstr ""
+
+#: includes/class-lp-settings.php:221
+msgid "Automatically add an affiliate disclosure notice to any post that contains a sponsored LinkPilot link."
+msgstr ""
+
+#: includes/class-lp-settings.php:225
+msgid "Automatically attach UTM parameters to outbound destinations. Blank global values fall back to per-link overrides on the link edit screen."
+msgstr ""
+
+#: includes/class-lp-settings.php:229
+msgid "Track broken inbound URLs so you can redirect them quickly. Admin page: Links > 404 Log."
+msgstr ""
+
+#: includes/class-lp-settings.php:233
+msgid "Automatic safety checks on outbound destinations: blocklist, parked-domain detection, cross-domain redirects. Flags appear in the Safety column on the Links list."
+msgstr ""
+
+#: includes/class-lp-settings.php:237
+msgid "These apply to every new link you create. Every setting can be overridden per link on the link edit screen."
+msgstr ""
+
+#: includes/class-lp-settings.php:241
+msgid "How LinkPilot records clicks. Settings here affect what gets stored and what shows up in your dashboard stats."
+msgstr ""
+
+#: includes/class-lp-settings.php:245
+msgid "Optional features you can turn on or off without affecting the core redirect engine."
+msgstr ""
+
+#: includes/class-lp-settings.php:249
+msgid "Process raw outbound links in post content (not cloaked LinkPilot links). Replaces the WP External Links plugin."
+msgstr ""
+
+#. translators: 1: site home URL, 2: link prefix
+#: includes/class-lp-settings.php:266
+#, php-format
+msgid "Your links will look like: %1$s/%2$s/your-link/"
+msgstr ""
+
+#: includes/class-lp-setup-wizard.php:23
+msgid "LinkPilot Setup"
+msgstr ""
+
+#: includes/class-lp-setup-wizard.php:24
+msgid "Setup"
+msgstr ""
+
+#. translators: %s: URL to the setup wizard
+#: includes/class-lp-setup-wizard.php:59
+#, php-format
+msgid "Welcome to LinkPilot! <a href=\"%s\">Run the setup wizard</a> to get started."
+msgstr ""
+
+#: includes/class-lp-utm.php:129
+msgid "UTM Parameters (override)"
+msgstr ""
+
+#: includes/class-lp-utm.php:145
+msgid "Leave blank to use the site-wide defaults from LinkPilot > Settings > UTM. Fill in to override for this link only."
+msgstr ""
+
+#: views/admin-dashboard.php:31
+msgid "LinkPilot Dashboard"
+msgstr ""
+
+#: views/admin-dashboard.php:37
+msgid "Total Links"
+msgstr ""
+
+#: views/admin-dashboard.php:42
+msgid "Total Clicks"
+msgstr ""
+
+#: views/admin-dashboard.php:47
+msgid "Clicks (30 days)"
+msgstr ""
+
+#: views/admin-dashboard.php:52
+msgid "Clicks (7 days)"
+msgstr ""
+
+#. translators: %d: number of links checked
+#: views/admin-dashboard.php:67
+#, php-format
+msgid "Health check complete: %d link checked."
+msgid_plural "Health check complete: %d links checked."
+msgstr[0] ""
+msgstr[1] ""
+
+#: views/admin-dashboard.php:74
+msgid "Link Health"
+msgstr ""
+
+#: views/admin-dashboard.php:95
+msgid "Check All Links Now"
+msgstr ""
+
+#: views/admin-dashboard.php:97
+msgid "Background checks run hourly and stagger across the week."
+msgstr ""
+
+#: views/admin-dashboard.php:111
+msgid "Checking link health"
+msgstr ""
+
+#: views/admin-dashboard.php:113
+msgid "Reload to see updated counts"
+msgstr ""
+
+#: views/admin-dashboard.php:123
+msgid "Top Links (Last 30 Days)"
+msgstr ""
+
+#: views/admin-dashboard.php:147
+msgid "No click data yet. Clicks will appear here once your links start getting traffic."
+msgstr ""
+
+#: views/admin-migration.php:24
+msgid "Migrate to LinkPilot"
+msgstr ""
+
+#: views/admin-migration.php:28
+msgid "No plugins detected"
+msgstr ""
+
+#: views/admin-migration.php:29
+msgid "LinkPilot can migrate links from ThirstyAffiliates, Pretty Links, LinkCentral, and Easy Affiliate Links. No compatible data was found on this site."
+msgstr ""
+
+#: views/admin-migration.php:30
+msgid "You can also import links via CSV from the Import/Export page."
+msgstr ""
+
+#: views/admin-migration.php:33
+msgid "LinkPilot detected link data from the following plugins. Migration is non-destructive — your original data is preserved."
+msgstr ""
+
+#. translators: %s: number of links found
+#: views/admin-migration.php:42
+#, php-format
+msgid "%s links found."
+msgstr ""
+
+#: views/admin-migration.php:50
+msgid "Also scan and update shortcodes/links in post content"
+msgstr ""
+
+#. translators: %s: source plugin name
+#: views/admin-migration.php:58
+#, php-format
+msgid "Migrate from %s"
+msgstr ""
+
+#: views/admin-migration.php:84
+msgid "Migration in progress…"
+msgstr ""
+
+#: views/admin-migration.php:90
+#: views/admin-wizard.php:141
+msgid "Migrating links"
+msgstr ""
+
+#: views/admin-migration.php:93
+#: views/admin-migration.php:185
+msgid "Done"
+msgstr ""
+
+#: views/admin-migration.php:100
+#: views/admin-wizard.php:151
+msgid "Previewing content changes (dry run)"
+msgstr ""
+
+#: views/admin-migration.php:114
+msgid "Apply changes to my posts"
+msgstr ""
+
+#: views/admin-migration.php:120
+#: views/admin-wizard.php:207
+msgid "Skip content update"
+msgstr ""
+
+#: views/admin-migration.php:127
+#: views/admin-wizard.php:165
+msgid "Review before applying"
+msgstr ""
+
+#: views/admin-migration.php:131
+#: views/admin-wizard.php:169
+msgid "posts would be updated"
+msgstr ""
+
+#: views/admin-migration.php:132
+#: views/admin-wizard.php:170
+msgid "replacements total"
+msgstr ""
+
+#: views/admin-migration.php:138
+#: views/admin-wizard.php:176
+msgid "Examples of affected posts:"
+msgstr ""
+
+#: views/admin-migration.php:152
+msgid "No changes needed — no old shortcodes or URLs found in your posts."
+msgstr ""
+
+#: views/admin-migration.php:158
+msgid "Post revisions are kept automatically, so you can roll back any post later via Edit Post → Revisions."
+msgstr ""
+
+#: views/admin-migration.php:168
+msgid "Close"
+msgstr ""
+
+#: views/admin-migration.php:177
+msgid "Applying…"
+msgstr ""
+
+#: views/admin-migration.php:183
+#: views/admin-wizard.php:219
+msgid "Applying changes"
+msgstr ""
+
+#: views/admin-migration.php:193
+msgid "Done (content update skipped)"
+msgstr ""
+
+#: views/admin-wizard.php:10
+msgid "Welcome to LinkPilot"
+msgstr ""
+
+#: views/admin-wizard.php:11
+msgid "Let's get your link manager set up. This will only take a moment."
+msgstr ""
+
+#: views/admin-wizard.php:20
+msgid "Migrate Your Links"
+msgstr ""
+
+#: views/admin-wizard.php:21
+msgid "We detected link data from another plugin. Want to import it?"
+msgstr ""
+
+#. translators: %s: number of links found
+#: views/admin-wizard.php:30
+#, php-format
+msgid "%s links found"
+msgstr ""
+
+#: views/admin-wizard.php:38
+msgid "Skip migration — I'll start fresh"
+msgstr ""
+
+#: views/admin-wizard.php:44
+msgid "Also update shortcodes in existing posts"
+msgstr ""
+
+#. translators: %s: site home URL
+#: views/admin-wizard.php:61
+#, php-format
+msgid "Links will be: %s/go/your-link/"
+msgstr ""
+
+#: views/admin-wizard.php:68
+#: views/link-meta-box.php:36
+msgid "Redirect Type"
+msgstr ""
+
+#: views/admin-wizard.php:78
+msgid "Add nofollow"
+msgstr ""
+
+#: views/admin-wizard.php:81
+#: views/admin-wizard.php:90
+#: views/link-meta-box.php:61
+#: views/link-meta-box.php:64
+#: views/link-meta-box.php:78
+#: views/link-meta-box.php:81
+#: views/link-meta-box.php:95
+#: views/link-meta-box.php:98
+#: views/link-meta-box.php:112
+#: views/link-meta-box.php:115
+msgid "Yes"
+msgstr ""
+
+#: views/admin-wizard.php:82
+#: views/admin-wizard.php:91
+#: views/link-meta-box.php:61
+#: views/link-meta-box.php:65
+#: views/link-meta-box.php:78
+#: views/link-meta-box.php:82
+#: views/link-meta-box.php:95
+#: views/link-meta-box.php:99
+#: views/link-meta-box.php:112
+#: views/link-meta-box.php:116
+msgid "No"
+msgstr ""
+
+#: views/admin-wizard.php:100
+msgid "Finish Setup"
+msgstr ""
+
+#: views/admin-wizard.php:110
+msgid "Skip setup"
+msgstr ""
+
+#: views/admin-wizard.php:119
+msgid "Finishing…"
+msgstr ""
+
+#: views/admin-wizard.php:133
+msgid "Working…"
+msgstr ""
+
+#: views/admin-wizard.php:190
+msgid "Post revisions are kept automatically. You can roll back any post via Edit Post → Revisions."
+msgstr ""
+
+#: views/admin-wizard.php:202
+msgid "Apply changes and finish"
+msgstr ""
+
+#: views/link-meta-box.php:20
+msgid "Where visitors go when they click the cloaked URL. You can change this any time — all occurrences of the link update automatically."
+msgstr ""
+
+#: views/link-meta-box.php:28
+msgid "Copy URL to clipboard"
+msgstr ""
+
+#: views/link-meta-box.php:30
+msgid "Copy"
+msgstr ""
+
+#. translators: %s: default redirect type
+#. translators: %s: default nofollow setting (Yes or No)
+#. translators: %s: default sponsored setting (Yes or No)
+#. translators: %s: default new-window setting (Yes or No)
+#. translators: %s: default pass-query-strings setting (Yes or No)
+#: views/link-meta-box.php:42
+#: views/link-meta-box.php:60
+#: views/link-meta-box.php:77
+#: views/link-meta-box.php:94
+#: views/link-meta-box.php:111
+#, php-format
+msgid "Default (%s)"
+msgstr ""
+
+#: views/link-meta-box.php:50
+msgid "HTTP status sent to browsers and search engines. 307 is safest for affiliate links (no SEO signal leaks). 301 tells Google the link is permanent and passes some authority."
+msgstr ""
+
+#: views/link-meta-box.php:54
+msgid "Nofollow"
+msgstr ""
+
+#: views/link-meta-box.php:67
+msgid "Adds rel=\"nofollow\" so search engines don't follow this link. Recommended for affiliate/sponsored/untrusted links."
+msgstr ""
+
+#: views/link-meta-box.php:71
+msgid "Sponsored"
+msgstr ""
+
+#: views/link-meta-box.php:84
+msgid "Adds rel=\"sponsored\" to disclose paid relationships. Required for affiliate links under FTC and Google guidelines."
+msgstr ""
+
+#: views/link-meta-box.php:88
+msgid "Open in New Window"
+msgstr ""
+
+#: views/link-meta-box.php:101
+msgid "Adds target=\"_blank\" so the link opens in a new browser tab, keeping visitors on your site."
+msgstr ""
+
+#: views/link-meta-box.php:105
+msgid "Pass Query Strings"
+msgstr ""
+
+#: views/link-meta-box.php:118
+msgid "Forwards ?params from the cloaked URL to the destination (e.g., ?utm_source=...). Off by default to prevent cookie-stuffing."
+msgstr ""
+
+#: views/link-meta-box.php:122
+msgid "CSS Classes"
+msgstr ""
+
+#: views/link-meta-box.php:124
+msgid "Optional CSS classes"
+msgstr ""
+
+#: views/link-meta-box.php:125
+msgid "Space-separated CSS classes added to the generated link anchor. Use this to style specific links differently."
+msgstr ""
+
+#: views/link-meta-box.php:129
+msgid "Additional Rel Tags"
+msgstr ""
+
+#: views/link-meta-box.php:131
+msgid "e.g. ugc"
+msgstr ""
+
+#: views/link-meta-box.php:132
+msgid "Space-separated. Nofollow and sponsored are handled by their own settings above."
+msgstr ""
+
+#: views/link-meta-box.php:136
+msgid "JavaScript Redirect"
+msgstr ""
+
+#: views/link-meta-box.php:139
+msgid "No (use HTTP redirect)"
+msgstr ""
+
+#: views/link-meta-box.php:140
+msgid "Yes (preserves referrer)"
+msgstr ""
+
+#: views/link-meta-box.php:142
+msgid "Use JavaScript to redirect. Preserves the HTTP referrer for affiliate networks that require it. Slower than HTTP redirect."
+msgstr ""

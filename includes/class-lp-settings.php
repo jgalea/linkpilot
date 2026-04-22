@@ -104,6 +104,9 @@ class LP_Settings {
         self::add_field( 'lp_scanner_notify_recipient', __( 'Scanner Email Recipient', 'linkpilot' ), 'text', 'lp_modules', '', array(),
             __( 'Optional override for the admin email. Leave blank to use the site admin email.', 'linkpilot' )
         );
+        self::add_field( 'lp_resolve_excluded_hosts', __( 'Resolve Redirects: Never Rewrite These', 'linkpilot' ), 'textarea', 'lp_modules', '', array(),
+            __( 'Hosts or URL fragments that the Resolve Redirects page must never rewrite, even if they have a known final destination. One per line. Use this for your own cloaked-link domains (e.g. yourdomain.com/go/ or yourdomain.com/link/) and any affiliate network that would lose tracking if its URL was replaced.', 'linkpilot' )
+        );
 
         add_settings_section( 'lp_external_links', __( 'External Links', 'linkpilot' ), array( __CLASS__, 'external_intro' ), 'lp-settings' );
 
@@ -134,6 +137,103 @@ class LP_Settings {
         self::add_field( 'lp_ext_excluded_classes', __( 'Excluded CSS Classes (one per line)', 'linkpilot' ), 'textarea', 'lp_external_links', '', array(),
             __( 'Leave a link alone if it has any of these CSS classes. Useful for buttons or widgets you manage manually.', 'linkpilot' )
         );
+
+        add_settings_section( 'lp_utm', __( 'UTM Parameters', 'linkpilot' ), array( __CLASS__, 'utm_intro' ), 'lp-settings' );
+
+        self::add_field( 'lp_utm_enabled', __( 'Enable UTM Parameters', 'linkpilot' ), 'select', 'lp_utm', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Appends configurable UTM parameters to every outbound destination at redirect time. Per-link overrides live on the link edit screen.', 'linkpilot' )
+        );
+        self::add_field( 'lp_utm_mode', __( 'Existing UTMs Behavior', 'linkpilot' ), 'select', 'lp_utm', 'append', array(
+            'append'   => 'Append (keep existing, fill blanks)',
+            'override' => 'Override (replace existing with ours)',
+            'skip'     => 'Skip (if any UTM already present, do nothing)',
+        ),
+            __( 'What to do when the destination URL already has UTM parameters.', 'linkpilot' )
+        );
+        self::add_field( 'lp_utm_source', __( 'Default utm_source', 'linkpilot' ), 'text', 'lp_utm', '', array(),
+            __( 'The referrer — where traffic is coming from. Usually your site name or domain.', 'linkpilot' )
+        );
+        self::add_field( 'lp_utm_medium', __( 'Default utm_medium', 'linkpilot' ), 'text', 'lp_utm', '', array(),
+            __( 'The type of traffic. Common values: affiliate, blog, newsletter.', 'linkpilot' )
+        );
+        self::add_field( 'lp_utm_campaign', __( 'Default utm_campaign', 'linkpilot' ), 'text', 'lp_utm', '', array(),
+            __( 'The campaign name. Leave blank to set per-link only.', 'linkpilot' )
+        );
+        self::add_field( 'lp_utm_term', __( 'Default utm_term', 'linkpilot' ), 'text', 'lp_utm', '', array(),
+            __( 'Usually a keyword for paid search. Often left blank for affiliate links.', 'linkpilot' )
+        );
+        self::add_field( 'lp_utm_content', __( 'Default utm_content', 'linkpilot' ), 'text', 'lp_utm', '', array(),
+            __( 'Differentiates similar content or links within the same campaign. Often set per link.', 'linkpilot' )
+        );
+
+        add_settings_section( 'lp_404_log', __( '404 Logger', 'linkpilot' ), array( __CLASS__, 'l404_intro' ), 'lp-settings' );
+
+        self::add_field( 'lp_404_log_enabled', __( 'Log 404s', 'linkpilot' ), 'select', 'lp_404_log', 'yes', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Records every 404 page request so you can create one-click redirects from the 404 Log page. Bot traffic is filtered out automatically.', 'linkpilot' )
+        );
+
+        add_settings_section( 'lp_safety', __( 'Link Safety', 'linkpilot' ), array( __CLASS__, 'safety_intro' ), 'lp-settings' );
+
+        self::add_field( 'lp_safety_blocklist', __( 'Blocked Domains', 'linkpilot' ), 'textarea', 'lp_safety', '', array(),
+            __( 'One host per line. Any link pointing to a blocked domain (or a subdomain of it) will be flagged in the Safety column on the Links list.', 'linkpilot' )
+        );
+
+        add_settings_section( 'lp_webhook', __( 'Webhook', 'linkpilot' ), array( __CLASS__, 'webhook_intro' ), 'lp-settings' );
+
+        self::add_field( 'lp_webhook_url', __( 'Webhook URL', 'linkpilot' ), 'text', 'lp_webhook', '', array(),
+            __( 'POST a JSON payload to this URL after every click. Leave blank to disable. Delivery is scheduled asynchronously so the redirect stays fast.', 'linkpilot' )
+        );
+        self::add_field( 'lp_webhook_secret', __( 'Signing Secret', 'linkpilot' ), 'text', 'lp_webhook', '', array(),
+            __( 'If set, each delivery includes a X-LinkPilot-Signature header (sha256 HMAC of the body). Use this to verify the request is genuinely from your site.', 'linkpilot' )
+        );
+        self::add_field( 'lp_webhook_send_bots', __( 'Send Bot Clicks', 'linkpilot' ), 'select', 'lp_webhook', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Whether to deliver webhooks for clicks detected as bot traffic. Off by default.', 'linkpilot' )
+        );
+
+        add_settings_section( 'lp_digest', __( 'Weekly Digest', 'linkpilot' ), array( __CLASS__, 'digest_intro' ), 'lp-settings' );
+
+        self::add_field( 'lp_digest_enabled', __( 'Enable Weekly Digest', 'linkpilot' ), 'select', 'lp_digest', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'Emails a click summary every Monday morning: totals, top links, top referrers, new 404s.', 'linkpilot' )
+        );
+        self::add_field( 'lp_digest_recipient', __( 'Digest Recipient', 'linkpilot' ), 'text', 'lp_digest', '', array(),
+            __( 'Email address. Leave blank to use the site admin email.', 'linkpilot' )
+        );
+
+        add_settings_section( 'lp_disclosure', __( 'Affiliate Disclosure', 'linkpilot' ), array( __CLASS__, 'disclosure_intro' ), 'lp-settings' );
+
+        self::add_field( 'lp_disclosure_enabled', __( 'Enable Auto-Disclosure', 'linkpilot' ), 'select', 'lp_disclosure', 'no', array( 'yes' => 'Yes', 'no' => 'No' ),
+            __( 'When a post contains at least one cloaked sponsored link, prepend (or append) a disclosure notice automatically.', 'linkpilot' )
+        );
+        self::add_field( 'lp_disclosure_position', __( 'Position', 'linkpilot' ), 'select', 'lp_disclosure', 'top', array( 'top' => 'Top of post', 'bottom' => 'Bottom of post' ),
+            __( 'Where to inject the disclosure in post content.', 'linkpilot' )
+        );
+        self::add_field( 'lp_disclosure_text', __( 'Disclosure Text', 'linkpilot' ), 'textarea', 'lp_disclosure', '', array(),
+            __( 'HTML allowed (basic tags only). Leave blank for the default FTC-friendly wording.', 'linkpilot' )
+        );
+    }
+
+    public static function webhook_intro() {
+        echo '<p class="description">' . esc_html__( 'POST click data to an external URL for integrations with Zapier, n8n, Make, or your own webhook receiver.', 'linkpilot' ) . '</p>';
+    }
+
+    public static function digest_intro() {
+        echo '<p class="description">' . esc_html__( 'Weekly email summary of link activity. Opt-in.', 'linkpilot' ) . '</p>';
+    }
+
+    public static function disclosure_intro() {
+        echo '<p class="description">' . esc_html__( 'Automatically add an affiliate disclosure notice to any post that contains a sponsored LinkPilot link.', 'linkpilot' ) . '</p>';
+    }
+
+    public static function utm_intro() {
+        echo '<p class="description">' . esc_html__( 'Automatically attach UTM parameters to outbound destinations. Blank global values fall back to per-link overrides on the link edit screen.', 'linkpilot' ) . '</p>';
+    }
+
+    public static function l404_intro() {
+        echo '<p class="description">' . esc_html__( 'Track broken inbound URLs so you can redirect them quickly. Admin page: Links > 404 Log.', 'linkpilot' ) . '</p>';
+    }
+
+    public static function safety_intro() {
+        echo '<p class="description">' . esc_html__( 'Automatic safety checks on outbound destinations: blocklist, parked-domain detection, cross-domain redirects. Flags appear in the Safety column on the Links list.', 'linkpilot' ) . '</p>';
     }
 
     public static function link_defaults_intro() {

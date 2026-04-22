@@ -109,21 +109,265 @@ class LP_Scanner_Admin {
         );
         add_submenu_page(
             'edit.php?post_type=lp_link',
-            __( 'Canonicalize Redirects', 'linkpilot' ),
-            __( 'Canonicalize Redirects', 'linkpilot' ),
+            __( 'Resolve Redirects', 'linkpilot' ),
+            __( 'Resolve Redirects', 'linkpilot' ),
             'manage_options',
             'lp-scanner-redirects',
             array( __CLASS__, 'render_redirects_page' )
         );
     }
 
+    /**
+     * URL patterns that indicate the "final" destination is not actually the
+     * canonical resource (login walls, cookie consent pages, signin flows).
+     * Rewriting to these would replace a working link with a broken experience.
+     *
+     * @param string $url
+     * @return bool True if the URL looks like a soft-block redirect we must NOT resolve.
+     */
+    private static function is_softblock_url( $url ) {
+        if ( empty( $url ) ) {
+            return false;
+        }
+        $patterns = array(
+            '#/login/?\?next=#i',                            // facebook.com/login/?next=
+            '#consent\.(?:youtube|google|facebook)\.com/#i', // cookie consent interstitials
+            '#/v3/signin/#i',                                // Google signin flow
+            '#accounts\.google\.com/ServiceLogin#i',         // older Google signin
+            '#/signin\?(?:.*&)?continue=#i',                 // generic signin?continue=
+            '#/auth/(?:login|signin)#i',                     // /auth/login, /auth/signin
+            '#//www\.linkedin\.com/authwall#i',              // LinkedIn authwall
+        );
+        foreach ( $patterns as $p ) {
+            if ( preg_match( $p, $url ) ) {
+                return true;
+            }
+        }
+        // Universal affiliate/tracking hosts — never rewrite these.
+        $defaults = array(
+            'amzn.to',
+            'shareasale.com/r.cfm',
+            'awin1.com',
+            'imp.pxf.io',
+            'kraken.pxf.io',
+            'namecheap.pxf.io',
+            'click.convertkit-mail.com',
+            'click.convertkit-mail2.com',
+            'el2.convertkit-mail.com',
+            'el2.convertkit-mail2.com',
+            'email.republic.co/wf/click',
+            'track.youhodler.com/click',
+            'i.refs.cc',
+            'bit.ly',
+            'tinyurl.com',
+            't.co/',
+        );
+
+        // User-configurable extras from the setting textarea (one host/path per line).
+        $user_extras = array();
+        $raw = get_option( 'lp_resolve_excluded_hosts', '' );
+        if ( ! empty( $raw ) ) {
+            foreach ( preg_split( '/[\r\n]+/', $raw ) as $line ) {
+                $line = trim( $line );
+                if ( '' !== $line ) {
+                    $user_extras[] = $line;
+                }
+            }
+        }
+
+        $cloaked_hosts = apply_filters( 'lp_scanner_cloaked_hosts', array_merge( $defaults, $user_extras ) );
+        foreach ( $cloaked_hosts as $needle ) {
+            if ( stripos( $url, $needle ) !== false ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Detect a redirect that strips affiliate tracking parameters from the
+     * original URL. Rewriting to the cleaner destination would lose attribution.
+     *
+     * We match on well-known affiliate/partner/referral query parameter names.
+     * If the original had any of them and the final dropped them, block.
+     *
+     * @param string $original
+     * @param string $final
+     * @return bool
+     */
+    private static function is_affiliate_param_loss( $original, $final ) {
+        if ( empty( $original ) || empty( $final ) ) {
+            return false;
+        }
+        $o = wp_parse_url( $original );
+        $f = wp_parse_url( $final );
+        if ( ! is_array( $o ) || empty( $o['query'] ) ) {
+            return false;
+        }
+        $oq = array();
+        wp_parse_str( $o['query'], $oq );
+        $fq = array();
+        if ( is_array( $f ) && ! empty( $f['query'] ) ) {
+            wp_parse_str( $f['query'], $fq );
+        }
+        // Known affiliate / partner / tracking param names across networks.
+        $keys = apply_filters( 'lp_scanner_affiliate_param_keys', array(
+            'aid',          // Booking.com, many
+            'tag',          // Amazon Associates
+            'affid', 'aff_id', 'affiliate_id', 'affiliate',
+            'ref', 'refid', 'referrer', 'referral',
+            'linkid', 'linkcode',
+            'partner', 'partnerid', 'partner_id',
+            'awc',          // Awin
+            'clickid', 'irclickid', 'irgwc', 'ir_id', // Impact
+            'mbsy',         // Ambassador
+            'srsltid',      // Google Shopping affiliate
+            'camp', 'campaign',
+            'mpid',         // Mindbody partner
+            'asgtbndr',     // Etsy
+            'smile_ref',    // Smile.io referrals
+            'smile_referral_code',
+            'pub', 'pubid',
+            'promocode', 'voucher',
+            'subid', 'subid1', 'subid2',
+            'sub1', 'sub2', 'sub3',
+            'offer_id', 'offerid',
+            'affsub', 'affsubid',
+            'utm_ref',
+        ) );
+        foreach ( $keys as $k ) {
+            if ( isset( $oq[ $k ] ) && '' !== $oq[ $k ] && ! isset( $fq[ $k ] ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Detect a redirect whose "final" URL differs from the original only by
+     * an added locale segment or locale query parameter. These are geo-based
+     * — the scanner runs from the server's country, so baking the result
+     * into content sends every visitor to that one locale regardless of theirs.
+     *
+     * @param string $original
+     * @param string $final
+     * @return bool
+     */
+    private static function is_locale_redirect( $original, $final ) {
+        if ( empty( $original ) || empty( $final ) ) {
+            return false;
+        }
+        $o = wp_parse_url( $original );
+        $f = wp_parse_url( $final );
+        if ( ! is_array( $o ) || ! is_array( $f ) ) {
+            return false;
+        }
+        // Must be the same host (after normalizing optional www).
+        $oh = isset( $o['host'] ) ? preg_replace( '/^www\./i', '', strtolower( $o['host'] ) ) : '';
+        $fh = isset( $f['host'] ) ? preg_replace( '/^www\./i', '', strtolower( $f['host'] ) ) : '';
+        if ( $oh === '' || $fh === '' || $oh !== $fh ) {
+            return false;
+        }
+
+        // Path: does final add a leading locale segment the original lacked?
+        $op = isset( $o['path'] ) ? trim( $o['path'], '/' ) : '';
+        $fp = isset( $f['path'] ) ? trim( $f['path'], '/' ) : '';
+        $locale_rx = '@^[a-z]{2,3}(-[a-z]{2,4})?$@i';
+        $first_f   = $fp !== '' ? explode( '/', $fp )[0] : '';
+        $first_o   = $op !== '' ? explode( '/', $op )[0] : '';
+        if ( $first_f !== '' && preg_match( $locale_rx, $first_f ) ) {
+            if ( $first_o === '' || ! preg_match( $locale_rx, $first_o ) ) {
+                return true;
+            }
+        }
+
+        // Query: did final add gl=, locale=, country=, lang=, region=?
+        if ( ! empty( $f['query'] ) ) {
+            $fq = array();
+            wp_parse_str( $f['query'], $fq );
+            $oq = array();
+            if ( ! empty( $o['query'] ) ) {
+                wp_parse_str( $o['query'], $oq );
+            }
+            foreach ( array( 'gl', 'locale', 'country', 'lang', 'region', 'cc' ) as $k ) {
+                if ( isset( $fq[ $k ] ) && ! isset( $oq[ $k ] ) ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Human-readable reason a redirect is excluded from resolve.
+     *
+     * @param string $original
+     * @param string $final
+     * @return string
+     */
+    private static function blocked_reason( $original, $final ) {
+        if ( self::is_affiliate_param_loss( $original, $final ) ) {
+            return __( 'Affiliate params dropped', 'linkpilot' );
+        }
+        if ( self::is_locale_redirect( $original, $final ) ) {
+            return __( 'Locale redirect (geo-based)', 'linkpilot' );
+        }
+        $url = $final ?: $original;
+        if ( stripos( $url, '/login/' ) !== false && stripos( $url, 'next=' ) !== false ) {
+            return __( 'Login wall', 'linkpilot' );
+        }
+        if ( stripos( $url, 'consent.' ) !== false ) {
+            return __( 'Cookie consent', 'linkpilot' );
+        }
+        if ( stripos( $url, '/v3/signin/' ) !== false || stripos( $url, 'ServiceLogin' ) !== false ) {
+            return __( 'Signin flow', 'linkpilot' );
+        }
+        if ( stripos( $url, 'authwall' ) !== false ) {
+            return __( 'Authwall', 'linkpilot' );
+        }
+        foreach ( array( 'wpmayor.com/link/', 'amzn.to', 'pxf.io', 'shareasale', 'convertkit-mail' ) as $needle ) {
+            if ( stripos( $original, $needle ) !== false || stripos( $url, $needle ) !== false ) {
+                return __( 'Cloaked / affiliate link', 'linkpilot' );
+            }
+        }
+        return __( 'Excluded', 'linkpilot' );
+    }
+
     public static function render_redirects_page() {
         $all_redirects = LP_Scanner_DB::get_redirects();
+
+        // Partition: resolvable vs soft-block/cloaked/locale (display only, cannot rewrite).
+        $resolvable = array();
+        $blocked    = array();
+        foreach ( $all_redirects as $r ) {
+            if (
+                self::is_softblock_url( $r->final_url )
+                || self::is_softblock_url( $r->url )
+                || self::is_locale_redirect( $r->url, $r->final_url )
+                || self::is_affiliate_param_loss( $r->url, $r->final_url )
+            ) {
+                $blocked[] = $r;
+            } else {
+                $resolvable[] = $r;
+            }
+        }
+
+        // Pagination for the resolvable list.
+        $per_page = 100;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only.
+        $page     = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
+        $pages    = max( 1, (int) ceil( count( $resolvable ) / $per_page ) );
+        $visible  = array_slice( $resolvable, ( $page - 1 ) * $per_page, $per_page );
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e( 'Canonicalize Redirects', 'linkpilot' ); ?></h1>
+            <h1><?php esc_html_e( 'Resolve Redirects', 'linkpilot' ); ?></h1>
             <p class="description">
-                <?php esc_html_e( 'URLs in your posts that redirect to a different final destination. Click "Canonicalize" to rewrite the original URL to the final URL across every post that uses it — post revisions are kept automatically. This fixes HTTPS migration leftovers and URL restructuring in one pass.', 'linkpilot' ); ?>
+                <?php esc_html_e( 'URLs in your posts that currently redirect to a different final destination. Click "Resolve" to rewrite the original URL to the final URL across every post that uses it — post revisions are kept automatically. This is useful for HTTPS migration leftovers, www/non-www canonical fixes, and platform URL changes.', 'linkpilot' ); ?>
+            </p>
+            <p class="description" style="color:#a00;">
+                <strong><?php esc_html_e( 'Note:', 'linkpilot' ); ?></strong>
+                <?php esc_html_e( 'This is not SEO "canonicalization" in the rel=canonical sense — it just resolves redirect chains in your content. Login walls, cookie-consent redirects, and your own cloaked affiliate-link domains are automatically excluded (see below) to avoid replacing working URLs with sign-in pages.', 'linkpilot' ); ?>
             </p>
 
             <?php if ( empty( $all_redirects ) ) : ?>
@@ -132,47 +376,95 @@ class LP_Scanner_Admin {
                 </div>
                 <?php return; endif; ?>
 
-            <p style="margin:16px 0;">
-                <button type="button" class="button button-primary" id="lp-canonicalize-all">
-                    <?php echo esc_html( sprintf(
-                        /* translators: %d: number of redirects */
-                        __( 'Canonicalize all %d redirects', 'linkpilot' ),
-                        count( $all_redirects )
-                    ) ); ?>
-                </button>
-                <span class="description" style="margin-left:12px;">
-                    <?php esc_html_e( 'Processes one URL per second to avoid DB spikes. You can leave the page running.', 'linkpilot' ); ?>
-                </span>
-            </p>
+            <?php if ( ! empty( $resolvable ) ) : ?>
+                <p style="margin:16px 0;">
+                    <button type="button" class="button button-primary" id="lp-canonicalize-all">
+                        <?php echo esc_html( sprintf(
+                            /* translators: %d: number of redirects */
+                            __( 'Resolve all %d redirects on this page', 'linkpilot' ),
+                            count( $visible )
+                        ) ); ?>
+                    </button>
+                    <span class="description" style="margin-left:12px;">
+                        <?php esc_html_e( 'Processes one URL per second. Leave the page open while it runs.', 'linkpilot' ); ?>
+                    </span>
+                </p>
 
-            <div id="lp-canonicalize-progress"></div>
+                <div id="lp-canonicalize-progress"></div>
 
-            <table class="widefat striped" style="max-width:1300px;">
-                <thead>
-                    <tr>
-                        <th><?php esc_html_e( 'Original URL', 'linkpilot' ); ?></th>
-                        <th style="width:30px;">→</th>
-                        <th><?php esc_html_e( 'Final URL', 'linkpilot' ); ?></th>
-                        <th style="width:70px;"><?php esc_html_e( 'Hops', 'linkpilot' ); ?></th>
-                        <th style="width:70px;"><?php esc_html_e( 'Posts', 'linkpilot' ); ?></th>
-                        <th style="width:160px;"><?php esc_html_e( 'Action', 'linkpilot' ); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ( $all_redirects as $r ) : ?>
-                        <tr class="lp-redirect-row" data-original="<?php echo esc_attr( $r->url ); ?>" data-final="<?php echo esc_attr( $r->final_url ); ?>">
-                            <td style="word-break:break-all;"><?php echo esc_html( $r->url ); ?></td>
-                            <td style="text-align:center;color:#787c82;">→</td>
-                            <td style="word-break:break-all;"><?php echo esc_html( $r->final_url ); ?></td>
-                            <td><?php echo esc_html( $r->redirect_count ); ?></td>
-                            <td><?php echo esc_html( $r->ref_count ); ?></td>
-                            <td>
-                                <button type="button" class="button button-small lp-canonicalize-one"><?php esc_html_e( 'Canonicalize', 'linkpilot' ); ?></button>
-                            </td>
+                <table class="widefat striped" style="max-width:1300px;">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e( 'Original URL', 'linkpilot' ); ?></th>
+                            <th style="width:30px;">→</th>
+                            <th><?php esc_html_e( 'Final URL', 'linkpilot' ); ?></th>
+                            <th style="width:70px;"><?php esc_html_e( 'Hops', 'linkpilot' ); ?></th>
+                            <th style="width:70px;"><?php esc_html_e( 'Posts', 'linkpilot' ); ?></th>
+                            <th style="width:160px;"><?php esc_html_e( 'Action', 'linkpilot' ); ?></th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ( $visible as $r ) : ?>
+                            <tr class="lp-redirect-row" data-original="<?php echo esc_attr( $r->url ); ?>" data-final="<?php echo esc_attr( $r->final_url ); ?>">
+                                <td style="word-break:break-all;"><?php echo esc_html( $r->url ); ?></td>
+                                <td style="text-align:center;color:#787c82;">→</td>
+                                <td style="word-break:break-all;"><?php echo esc_html( $r->final_url ); ?></td>
+                                <td><?php echo esc_html( $r->redirect_count ); ?></td>
+                                <td><?php echo esc_html( $r->ref_count ); ?></td>
+                                <td>
+                                    <button type="button" class="button button-small lp-canonicalize-one"><?php esc_html_e( 'Resolve', 'linkpilot' ); ?></button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <?php if ( $pages > 1 ) : ?>
+                    <div class="tablenav" style="margin-top:12px;">
+                        <div class="tablenav-pages">
+                            <?php
+                            echo wp_kses_post( paginate_links( array(
+                                'base'      => add_query_arg( 'paged', '%#%' ),
+                                'format'    => '',
+                                'current'   => $page,
+                                'total'     => $pages,
+                                'prev_text' => '&laquo;',
+                                'next_text' => '&raquo;',
+                            ) ) );
+                            ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <?php if ( ! empty( $blocked ) ) : ?>
+                <h2 style="margin-top:32px;"><?php esc_html_e( 'Not resolvable (excluded)', 'linkpilot' ); ?></h2>
+                <p class="description">
+                    <?php esc_html_e( 'These redirect to login walls, cookie-consent pages, or your own cloaked affiliate links. Rewriting them would break the user experience or your affiliate tracking, so they are listed for visibility but cannot be resolved automatically.', 'linkpilot' ); ?>
+                </p>
+                <table class="widefat striped" style="max-width:1300px; opacity:0.85;">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e( 'Original URL', 'linkpilot' ); ?></th>
+                            <th style="width:30px;">→</th>
+                            <th><?php esc_html_e( 'Final URL', 'linkpilot' ); ?></th>
+                            <th style="width:70px;"><?php esc_html_e( 'Posts', 'linkpilot' ); ?></th>
+                            <th style="width:160px;"><?php esc_html_e( 'Why blocked', 'linkpilot' ); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ( array_slice( $blocked, 0, 200 ) as $r ) : ?>
+                            <tr>
+                                <td style="word-break:break-all;"><?php echo esc_html( $r->url ); ?></td>
+                                <td style="text-align:center;color:#787c82;">→</td>
+                                <td style="word-break:break-all;"><?php echo esc_html( $r->final_url ); ?></td>
+                                <td><?php echo esc_html( $r->ref_count ); ?></td>
+                                <td><?php echo esc_html( self::blocked_reason( $r->url, $r->final_url ) ); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
         </div>
 
         <script>

@@ -52,6 +52,26 @@ When enabled, LinkPilot sends the cloaked URL you want to encode to api.qrserver
 
 If you do not enable the QR feature, no external service is ever contacted.
 
+**Link preview cards**
+
+When you use the `[lp_preview url="..."]` shortcode or preview block, LinkPilot fetches Open Graph metadata from the target URL to render a rich card. Only the URL you explicitly included is fetched. Metadata is cached locally for 7 days.
+
+* Data sent: only the outbound URL you included in the shortcode / block
+* Caching: 7 days per URL; can be cleared from admin
+
+**Link safety scan**
+
+When you run a safety scan on a link, LinkPilot fetches its destination URL to check HTTP status, detect parked-domain fingerprints, and flag suspicious redirects. Scans are manual — nothing runs unless you trigger it.
+
+* Data sent: only the destination URL of the link being scanned
+
+**Link health checker + Link scanner**
+
+LinkPilot periodically fetches your cloaked links' destinations and raw outbound URLs in post content to verify they're still reachable. Runs only when you enable the Scanner or the Health Checker. Requests go directly to the destination host you configured — no third-party intermediary.
+
+* Data sent: only the URLs stored in your links / posts
+* Triggered: hourly cron if enabled, or on demand from the admin
+
 == Installation ==
 
 1. Upload `linkpilot` to `/wp-content/plugins/`
